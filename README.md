@@ -140,8 +140,6 @@ python -m uvicorn app.main:app --port 8001
 
 **Изменения в коде не применяются в десктоп-режиме** — `desktop.py` запускает `uvicorn` без `--reload`, в отличие от `run.bat`. После правок закройте окно приложения и запустите `python desktop.py` заново.
 
-**Кириллица в PDF выглядит как квадраты** — отчёт использует системный шрифт Windows (`Arial`/`Times New Roman`). На Linux/macOS без этих шрифтов установите `msttcorefonts` или укажите путь к любому TTF-шрифту с кириллицей в `app/services/exports.py`.
-
 **Модель не найдена** — убедитесь, что файл `models/yolov8n.onnx` существует. Если он был удалён, сгенерируйте его заново:
 ```cmd
 pip install ultralytics
