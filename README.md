@@ -15,7 +15,6 @@ Kubernetes deployment, and network troubleshooting.
 | [`k8s/`](k8s/) | kind cluster and the `orders-api` Helm chart: Deployment, Service, Ingress, HPA, PDB |
 | [`benchmarks/image-size/`](benchmarks/image-size/) | Single-stage vs multi-stage image size comparison |
 | [`benchmarks/postgres-cpu/`](benchmarks/postgres-cpu/) | PostgreSQL CPU usage before and after query optimization |
-| [`network/`](network/) | Reference topology for a two-office network and a troubleshooting checklist |
 | [`docs/`](docs/) | Incident write-ups and screenshots |
 | [`scripts/`](scripts/) | Tool installation and a Docker networking fix for Codespaces |
 
