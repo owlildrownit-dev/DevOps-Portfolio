@@ -1,5 +1,5 @@
-# Параметры выкладки. Параметры инфраструктуры (сеть, имя контейнера БД)
-# приходят из terraform.yml, который генерирует Terraform.
+# Deployment settings. Infrastructure parameters (network, DB container name)
+# come from terraform.yml, which Terraform generates.
 app_name: orders-api
 app_version: "{{ lookup('env', 'APP_VERSION') | default('1.0.0', true) }}"
 app_replicas: 2
@@ -11,5 +11,5 @@ lb_image: nginx:1.27-alpine
 
 db_name: shop
 db_user: shop
-# Пароль только из окружения: в репозитории его нет
+# The password comes only from the environment and is not stored in the repository
 db_password: "{{ lookup('env', 'DB_PASSWORD') }}"

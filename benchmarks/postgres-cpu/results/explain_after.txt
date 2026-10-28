@@ -1,4 +1,4 @@
-### Запрос 1: история заказов клиента
+### Query 1: customer order history
                                                   QUERY PLAN                                                  
 --------------------------------------------------------------------------------------------------------------
  Limit (actual time=0.199..0.201 rows=9 loops=1)
@@ -22,7 +22,7 @@
 (18 rows)
 
 
-### Запрос 2: поиск клиента по email
+### Query 2: customer lookup by email
                                             QUERY PLAN                                             
 ---------------------------------------------------------------------------------------------------
  Index Scan using customers_email_lower_idx on customers (actual time=0.033..0.033 rows=1 loops=1)

@@ -1,4 +1,4 @@
--- Топ запросов по суммарному времени выполнения (pg_stat_statements, PostgreSQL 13+).
+-- Top queries by total execution time (pg_stat_statements, PostgreSQL 13+).
 SELECT
     calls,
     round(total_exec_time::numeric, 0)                          AS total_ms,

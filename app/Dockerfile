@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1
 # Multi-stage build.
-#   Стадия build: компилятор + libpq-dev, собираем wheel-файлы зависимостей.
-#   Итоговая стадия: только runtime-библиотека libpq5 и готовые wheel-файлы.
+#   build stage: compiler and libpq-dev, builds wheels for all dependencies.
+#   final stage: only the libpq5 runtime library and the prebuilt wheels.
 
-# ---------- стадия сборки ----------
+# ---------- build stage ----------
 FROM python:3.12-slim AS build
 
 RUN apt-get update \
@@ -14,10 +14,10 @@ WORKDIR /build
 COPY requirements.txt .
 RUN pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
-# ---------- итоговый образ ----------
+# ---------- final image ----------
 FROM python:3.12-slim
 
-# libpq5: клиентская библиотека, нужна psycopg2 во время работы (без -dev пакетов)
+# libpq5: the client library psycopg2 needs at runtime (no -dev packages)
 RUN apt-get update \
  && apt-get install -y --no-install-recommends libpq5 \
  && rm -rf /var/lib/apt/lists/* \
@@ -25,12 +25,12 @@ RUN apt-get update \
 
 WORKDIR /app
 
-# wheel-файлы подключаются из стадии build только на время RUN (BuildKit bind mount),
-# поэтому сами .whl в слои итогового образа не попадают
+# The wheels are mounted from the build stage only for this RUN (BuildKit bind mount),
+# so the .whl files never end up in a layer of the final image
 RUN --mount=type=bind,from=build,source=/wheels,target=/wheels \
     pip install --no-cache-dir /wheels/*.whl
 
-# код копируем последним: правка кода не сбрасывает кэш слоя с зависимостями
+# Copy the code last so that code changes do not invalidate the dependency layer cache
 COPY app.py .
 
 USER app

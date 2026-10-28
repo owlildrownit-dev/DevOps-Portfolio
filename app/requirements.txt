@@ -1,6 +1,6 @@
 flask==3.0.3
 gunicorn==22.0.0
-# psycopg2 (не -binary) собирается из исходников: нужны gcc и libpq-dev.
-# Именно поэтому он хорошо показывает разницу между образом со сборочными
-# зависимостями и multi-stage образом.
+# psycopg2 (not -binary) is built from source and needs gcc and libpq-dev,
+# which makes it a good example of the difference between an image that keeps
+# its build dependencies and a multi-stage image.
 psycopg2==2.9.9

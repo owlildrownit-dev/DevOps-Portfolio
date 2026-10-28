@@ -1,17 +1,17 @@
-# Размер образов orders-api
+# orders-api image sizes
 
-Замер: 2026-10-28 17:18, Docker 29.8.0-1
+Measured: 2026-10-28 17:18, Docker 29.8.0-1
 
-| Образ | Размер, байт | Размер, МБ | Сборка с нуля, с |
+| Image | Size, bytes | Size, MiB | Clean build, s |
 | --- | --- | --- | --- |
 | orders-api:before | 738410763 | 704.2 | 60 |
 | orders-api:after | 207651183 | 198.0 | 53 |
 
-Уменьшение: (738410763 - 207651183) / 738410763 × 100 = **71.9%**
+Reduction: (738410763 - 207651183) / 738410763 × 100 = **71.9%**
 
-Проверки образа after: gcc в образе: нет; импорт приложения: ok
+Checks for the after image: gcc in image: none; app import: ok
 
-## Слои before (docker history)
+## before layers (docker history)
 ```
 SIZE      CREATED BY
 0B        CMD ["gunicorn" "--bind" "0.0.0.0:8000" "--workers" "2" "app:app"]
@@ -32,7 +32,7 @@ SIZE      CREATED BY
 87.7MB    # debian.sh --arch 'amd64' out/ 'trixie' '@1793059200'
 ```
 
-## Слои after (docker history)
+## after layers (docker history)
 ```
 SIZE      CREATED BY
 0B        CMD ["gunicorn" "--bind" "0.0.0.0:8000" "--workers" "2" "app:app"]

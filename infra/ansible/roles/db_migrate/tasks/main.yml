@@ -22,6 +22,6 @@
       - -c
       - "{{ lookup('ansible.builtin.file', 'schema.sql') }}"
   register: migration
-  # psql -c с несколькими командами печатает результат только последней.
-  # "INSERT 0 0" значит, что данные уже были: считаем, что изменений нет
+  # With several statements, psql -c prints only the result of the last one.
+  # "INSERT 0 0" means the data was already there, so nothing changed
   changed_when: "'INSERT 0 0' not in migration.stdout"

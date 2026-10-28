@@ -12,10 +12,10 @@ terraform {
     }
   }
 
-  # На стенде state хранится локально. В реальной команде здесь remote backend
-  # (например, S3-совместимое хранилище) с блокировкой, чтобы два человека
-  # не применяли изменения одновременно.
+  # State is stored locally here. A team setup would use a remote backend
+  # (for example, S3-compatible storage) with locking, so that two people
+  # cannot apply changes at the same time.
 }
 
-# Подключается к локальному Docker (DOCKER_HOST или /var/run/docker.sock)
+# Connects to the local Docker daemon (DOCKER_HOST or /var/run/docker.sock)
 provider "docker" {}

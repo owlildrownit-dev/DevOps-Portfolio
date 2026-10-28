@@ -1,69 +1,72 @@
 # orders-platform
 
-Учебный DevOps-проект вокруг небольшого сервиса заказов (`app/`, Flask + PostgreSQL):
-инфраструктура как код, автоматическая выкладка, оптимизация Docker-образа и запросов к БД,
-развертывание в Kubernetes, сетевая диагностика.
+A hands-on DevOps project built around a small order service (`app/`, Flask + PostgreSQL):
+infrastructure as code, automated deployment, Docker image and database query optimization,
+Kubernetes deployment, and network troubleshooting.
 
-> Данные синтетические, все замеры выполнены на тестовом стенде (GitHub Codespaces).
+> All data is synthetic, and all measurements were taken in a test environment (GitHub Codespaces).
 
-## Структура
+## Repository layout
 
-| Каталог | Содержимое |
+| Directory | Contents |
 | --- | --- |
-| [`app/`](app/) | Сервис `orders-api`: Flask, gunicorn, psycopg2; multi-stage `Dockerfile` |
-| [`infra/`](infra/) | Terraform (сеть, том, PostgreSQL) и Ansible (миграция, сборка, rolling update, nginx, smoke-тест) |
-| [`k8s/`](k8s/) | Кластер kind, Helm-чарт `orders-api`: Deployment, Service, Ingress, HPA, PDB |
-| [`benchmarks/image-size/`](benchmarks/image-size/) | Сравнение размера однослойного и multi-stage образа |
-| [`benchmarks/postgres-cpu/`](benchmarks/postgres-cpu/) | Нагрузка CPU PostgreSQL до и после оптимизации запросов |
-| [`network/`](network/) | Референсная схема сети двух офисов, чек-лист диагностики |
-| [`docs/`](docs/) | Разборы инцидентов, скриншоты |
-| [`scripts/`](scripts/) | Установка инструментов, исправление сети Docker в Codespaces |
+| [`app/`](app/) | The `orders-api` service: Flask, gunicorn, psycopg2; multi-stage `Dockerfile` |
+| [`infra/`](infra/) | Terraform (network, volume, PostgreSQL) and Ansible (migration, build, rolling update, nginx, smoke test) |
+| [`k8s/`](k8s/) | kind cluster and the `orders-api` Helm chart: Deployment, Service, Ingress, HPA, PDB |
+| [`benchmarks/image-size/`](benchmarks/image-size/) | Single-stage vs multi-stage image size comparison |
+| [`benchmarks/postgres-cpu/`](benchmarks/postgres-cpu/) | PostgreSQL CPU usage before and after query optimization |
+| [`network/`](network/) | Reference topology for a two-office network and a troubleshooting checklist |
+| [`docs/`](docs/) | Incident write-ups and screenshots |
+| [`scripts/`](scripts/) | Tool installation and a Docker networking fix for Codespaces |
 
-## Результаты (GitHub Codespaces, 28.10.2026)
+## Results (GitHub Codespaces, 2026-10-28)
 
-Замеры выкладки, размера образа и PostgreSQL выполнены дважды; исходные файлы второго прогона лежат в каталогах `results/`.
+The deployment, image size and PostgreSQL measurements were each taken twice; the raw output
+of the second run is in the `results/` directories.
 
-| Задача | Прогон 1 | Прогон 2 | Итог |
+| Task | Run 1 | Run 2 | Summary |
 | --- | --- | --- | --- |
-| Выкладка одной командой (`infra/deploy.sh`) | 81 с (инфраструктура уже создана) | 111 с с нуля, из них Terraform 28 с | обновление до 1.1.0: 80 и 81 с |
-| Размер образа, МБ | 704,2 → 198,0 | 704,2 → 198,0 | −71,9% |
-| CPU PostgreSQL за 120 с при 3 TPS | 118,30 с → 0,39 с | 125,09 с → 0,43 с | −99,7% |
-| Kubernetes | HPA 2 → 5 реплик, обновление и `helm rollback` | | |
+| One-command deployment (`infra/deploy.sh`) | 81 s (infrastructure already in place) | 111 s from scratch, 28 s of it in Terraform | upgrade to 1.1.0: 80 s and 81 s |
+| Image size, MiB | 704.2 → 198.0 | 704.2 → 198.0 | −71.9% |
+| PostgreSQL CPU time over 120 s at 3 TPS | 118.30 s → 0.39 s | 125.09 s → 0.43 s | −99.7% |
+| Kubernetes | HPA scaled 2 → 5 replicas; upgrade and `helm rollback` | | |
 
-Расчеты: (704,2 − 198,0) / 704,2 × 100 ≈ 71,9%; (125,09 − 0,43) / 125,09 × 100 ≈ 99,7%.
+Calculations: (704.2 − 198.0) / 704.2 × 100 ≈ 71.9%; (125.09 − 0.43) / 125.09 × 100 ≈ 99.7%.
 
-**HPA под нагрузкой: 2 → 4 → 5 реплик**
+The screenshots were taken during run 1, before the scripts' output was translated into English.
+
+**HPA under load: 2 → 4 → 5 replicas**
 
 ![HPA](docs/screenshots/04-k8s-hpa-scaling.png)
 
-**Helm: обновление и откат**
+**Helm: upgrade and rollback**
 
 ![Helm rollback](docs/screenshots/04-k8s-helm-rollback.png)
 
-**PostgreSQL: замер с сопоставимой нагрузкой и замер, забракованный проверкой**
+**PostgreSQL: a run with comparable load, and a run rejected by the validity check**
 
 ![PostgreSQL](docs/screenshots/03-postgres-valid-run.png)
 ![PostgreSQL overloaded](docs/screenshots/03-postgres-overloaded-warning.png)
 
-**Размер образов и время выкладки**
+**Image sizes and deployment time**
 
 ![Image size](docs/screenshots/02-docker-sizes.png)
 ![Deploy](docs/screenshots/01-deploy-done.png)
 
-## Запуск
+## Getting started
 
-**GitHub Codespaces:** Code → Codespaces → Create codespace. Инструменты ставятся автоматически
+**GitHub Codespaces:** Code → Codespaces → Create codespace. The tools are installed automatically
 (`.devcontainer`, `scripts/setup-tools.sh`).
 
-**Linux / WSL2 с Docker:** `bash scripts/setup-tools.sh`.
+**Linux / WSL2 with Docker:** `bash scripts/setup-tools.sh`.
 
 ```bash
-cd benchmarks/postgres-cpu && ./run.sh        # RATE=3 ./run.sh, если отчет пишет «ВНИМАНИЕ»
+cd benchmarks/postgres-cpu && ./run.sh        # use RATE=3 ./run.sh if the report shows a WARNING
 cd benchmarks/image-size && ./measure.sh
-cd infra && ./deploy.sh                       # APP_VERSION=1.1.0 ./deploy.sh для обновления
-cd k8s && ./setup-cluster.sh                  # затем ./load-test.sh и ./teardown.sh
+cd infra && ./deploy.sh                       # APP_VERSION=1.1.0 ./deploy.sh to upgrade
+cd k8s && ./setup-cluster.sh                  # then ./load-test.sh and ./teardown.sh
 ```
 
-## Инциденты
+## Incidents
 
-- [Тайм-ауты между контейнерами в Codespaces (iptables-legacy)](docs/incidents/2026-10-28-container-traffic-timeouts.md)
+- [Container-to-container timeouts in Codespaces (iptables-legacy)](docs/incidents/2026-10-28-container-traffic-timeouts.md)

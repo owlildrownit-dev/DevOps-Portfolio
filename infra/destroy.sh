@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Полностью удаляет стенд: контейнеры Ansible (по метке stand=demo), затем ресурсы Terraform.
+# Tears down the environment: Ansible-managed containers (label stand=demo), then the Terraform resources.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 cd "$HERE"

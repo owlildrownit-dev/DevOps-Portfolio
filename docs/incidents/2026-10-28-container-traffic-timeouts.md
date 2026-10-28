@@ -1,25 +1,25 @@
-# 2026-10-28: тайм-ауты между контейнерами в GitHub Codespaces
+# 2026-10-28: container-to-container timeouts in GitHub Codespaces
 
-**Итог:** трафик между контейнерами Docker отбрасывался legacy-таблицей iptables
-(`FORWARD DROP`). Исправлено правилом для мостов Docker, проверка автоматизирована.
+**Summary:** traffic between Docker containers was dropped by the legacy iptables table
+(`FORWARD DROP`). It was fixed with a rule scoped to Docker bridges, and the check is now automated.
 
-| Этап | Что было |
+| Stage | Details |
 | --- | --- |
-| Симптом | Smoke-тест выкладки: `GET 127.0.0.1:8080/healthz` висит до тайм-аута. В логе nginx код 499: клиент закрыл соединение, не дождавшись ответа от upstream. |
-| Гипотеза 1 | nginx хранит старые IP реплик. **Опровергнута:** `wget` из контейнера nginx напрямую к `orders-api-1:8000` тоже висит, хотя заново разрешает имя. |
-| Гипотеза 2 | В сети остались устаревшие записи после аварийной остановки Docker. **Опровергнута:** `nslookup` через 127.0.0.11, `docker inspect` и `docker network inspect` дают один адрес 172.18.0.3. |
-| Сужение | `ping` между контейнерами: 100% потерь; приложение не подключается к БД; с хоста nginx доступен. Проблема в трафике контейнер → контейнер. |
-| Причина | `iptables -S`: *iptables-legacy tables present*. Docker пишет правила в nft (FORWARD ACCEPT), а при `net.bridge.bridge-nf-call-iptables = 1` трафик внутри моста проходит и через legacy-таблицу с политикой FORWARD DROP. |
-| Исправление | `iptables-legacy -I FORWARD -i br-+ -o br-+ -j ACCEPT`: разрешен только трафик между мостами Docker. Выкладка прошла: 81 с (1.0.0), 80 с (1.1.0). |
-| Профилактика | `scripts/fix-docker-network.sh` запускается при каждом старте codespace (`postStartCommand`). |
+| Symptom | The deployment smoke test hung until timeout on `GET 127.0.0.1:8080/healthz`. The nginx log showed status 499: the client closed the connection before the upstream responded. |
+| Hypothesis 1 | nginx had cached stale replica IPs. **Ruled out:** `wget` from the nginx container straight to `orders-api-1:8000` also hung, even though it resolves the name afresh. |
+| Hypothesis 2 | Stale network entries were left behind after Docker stopped abruptly. **Ruled out:** `nslookup` via 127.0.0.11, `docker inspect` and `docker network inspect` all returned the same address, 172.18.0.3. |
+| Narrowing down | `ping` between containers: 100% packet loss; the app could not reach the database; nginx was reachable from the host. The problem was limited to container-to-container traffic. |
+| Root cause | `iptables -S` warned that *iptables-legacy tables* were present. Docker writes its rules to nft (FORWARD ACCEPT), but with `net.bridge.bridge-nf-call-iptables = 1` bridged traffic also traverses the legacy table, whose FORWARD policy was DROP. |
+| Fix | `iptables-legacy -I FORWARD -i br-+ -o br-+ -j ACCEPT`, which allows only traffic between Docker bridges. The deployment then succeeded: 81 s (1.0.0) and 80 s (1.1.0). |
+| Prevention | `scripts/fix-docker-network.sh` runs on every codespace start (`postStartCommand`). |
 
-## Связанные проблемы той же среды
+## Related issues in the same environment
 
-- **Узлы kind без DNS:** резолвер узла указывал на шлюз сети Docker (172.18.0.1:53), где DNS не слушает
-  (`ss -lunp`: только 127.0.0.53 на lo). Поды в `ImagePullBackOff`. Решение: загрузка образов в узлы
-  с хоста (`k8s/setup-cluster.sh`, шаг 1b).
-- **Остановка неактивного codespace:** все контейнеры завершились одновременно с кодом 255,
-  кэш BuildKit поврежден (`parent snapshot ... not found`). Решение: `docker builder prune -af`.
+- **kind nodes without DNS:** the node resolver pointed to the Docker network gateway (172.18.0.1:53),
+  where no DNS server listens (`ss -lunp` showed only 127.0.0.53 on lo). Pods were stuck in
+  `ImagePullBackOff`. Fix: load images into the nodes from the host (`k8s/setup-cluster.sh`, step 1b).
+- **Idle codespace shutdown:** all containers exited at the same moment with code 255, and the BuildKit
+  cache was corrupted (`parent snapshot ... not found`). Fix: `docker builder prune -af`.
 
-Скриншоты: [ping и iptables](../screenshots/05-incident-iptables.png),
-[DNS в узле kind](../screenshots/04-k8s-dns-imagepull.png).
+Screenshots: [ping and iptables](../screenshots/05-incident-iptables.png),
+[DNS in a kind node](../screenshots/04-k8s-dns-imagepull.png).

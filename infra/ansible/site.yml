@@ -1,5 +1,5 @@
-# Полная выкладка: миграция БД -> сборка образа -> rolling update приложения
-# -> конфигурация балансировщика -> smoke-тест.
+# Full deployment: DB migration -> image build -> application rolling update
+# -> load balancer configuration -> smoke test.
 - name: Deploy orders-api
   hosts: localhost
   gather_facts: false
@@ -11,8 +11,8 @@
           - db_password | length > 0
           - docker_network is defined
         fail_msg: >-
-          Нет DB_PASSWORD в окружении или не сгенерирован terraform.yml.
-          Запускайте через ../deploy.sh
+          DB_PASSWORD is not set, or terraform.yml has not been generated.
+          Run the deployment through ../deploy.sh
 
   roles:
     - db_migrate

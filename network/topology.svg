@@ -20,12 +20,12 @@
     .nat { font-size: 12px; fill: #92400e; }
   </style>
 
-  <text x="550" y="34" text-anchor="middle" class="title">Сеть двух офисов: референсная схема</text>
-  <text x="550" y="56" text-anchor="middle" class="sub">Публичные адреса из RFC 5737 (блоки для документации), внутренние из RFC 1918.</text>
+  <text x="550" y="34" text-anchor="middle" class="title">Two-office network: reference topology</text>
+  <text x="550" y="56" text-anchor="middle" class="sub">Public addresses from RFC 5737 (documentation blocks), internal addresses from RFC 1918.</text>
 
-  <!-- Интернет -->
+  <!-- Internet -->
   <ellipse cx="550" cy="125" rx="120" ry="38" class="cloud"/>
-  <text x="550" y="130" text-anchor="middle" class="dev-name">Интернет</text>
+  <text x="550" y="130" text-anchor="middle" class="dev-name">Internet</text>
 
   <!-- WAN -->
   <path d="M 270 276 L 460 150" class="wan"/>
@@ -33,82 +33,82 @@
   <text x="230" y="178" class="dev-info">ISP-A, WAN 198.51.100.10</text>
   <text x="725" y="178" class="dev-info">ISP-B, WAN 203.0.113.20</text>
 
-  <!-- VPN: туннель поверх интернета -->
+  <!-- VPN: tunnel over the internet -->
   <text x="550" y="198" text-anchor="middle" class="vpn-label">IPsec site-to-site</text>
   <text x="550" y="216" text-anchor="middle" class="vpn-label">10.10.0.0/16 ⇄ 10.20.0.0/16</text>
 
   <g transform="translate(0,40)">
-  <!-- Офисы -->
+  <!-- Offices -->
   <rect x="25" y="190" width="490" height="480" rx="10" class="office"/>
-  <text x="45" y="216" class="office-label">Офис A (основной)</text>
+  <text x="45" y="216" class="office-label">Office A (headquarters)</text>
   <rect x="585" y="190" width="490" height="480" rx="10" class="office"/>
-  <text x="605" y="216" class="office-label">Офис B (филиал)</text>
+  <text x="605" y="216" class="office-label">Office B (branch)</text>
 
-  <!-- Маршрутизаторы -->
+  <!-- Routers -->
   <rect x="160" y="236" width="220" height="64" rx="6" class="dev"/>
-  <text x="270" y="260" text-anchor="middle" class="dev-name">R-A: маршрутизатор / МСЭ</text>
-  <text x="270" y="279" text-anchor="middle" class="dev-info">шлюзы VLAN, NAT, IPsec, DHCP</text>
+  <text x="270" y="260" text-anchor="middle" class="dev-name">R-A: router / firewall</text>
+  <text x="270" y="279" text-anchor="middle" class="dev-info">VLAN gateways, NAT, IPsec, DHCP</text>
   <text x="270" y="294" text-anchor="middle" class="dev-info">LAN 10.10.0.0/16</text>
 
   <rect x="720" y="236" width="220" height="64" rx="6" class="dev"/>
-  <text x="830" y="260" text-anchor="middle" class="dev-name">R-B: маршрутизатор / МСЭ</text>
-  <text x="830" y="279" text-anchor="middle" class="dev-info">шлюзы VLAN, NAT, IPsec, DHCP</text>
+  <text x="830" y="260" text-anchor="middle" class="dev-name">R-B: router / firewall</text>
+  <text x="830" y="279" text-anchor="middle" class="dev-info">VLAN gateways, NAT, IPsec, DHCP</text>
   <text x="830" y="294" text-anchor="middle" class="dev-info">LAN 10.20.0.0/16</text>
 
   <!-- NAT -->
-  <text x="45" y="322" class="nat">NAT: masquerade в интернет;</text>
-  <text x="45" y="337" class="nat">исключение для 10.10/16 → 10.20/16</text>
-  <text x="605" y="322" class="nat">NAT: masquerade в интернет;</text>
-  <text x="605" y="337" class="nat">исключение для 10.20/16 → 10.10/16</text>
+  <text x="45" y="322" class="nat">NAT: masquerade to the internet;</text>
+  <text x="45" y="337" class="nat">exempt: 10.10/16 → 10.20/16</text>
+  <text x="605" y="322" class="nat">NAT: masquerade to the internet;</text>
+  <text x="605" y="337" class="nat">exempt: 10.20/16 → 10.10/16</text>
 
-  <!-- Коммутаторы -->
+  <!-- Switches -->
   <path d="M 270 300 L 270 360" class="link"/>
   <text x="278" y="335" class="dev-info">trunk 802.1Q</text>
   <rect x="160" y="360" width="220" height="50" rx="6" class="dev"/>
-  <text x="270" y="381" text-anchor="middle" class="dev-name">SW-A: коммутатор L2</text>
-  <text x="270" y="399" text-anchor="middle" class="dev-info">access-порты по VLAN</text>
+  <text x="270" y="381" text-anchor="middle" class="dev-name">SW-A: L2 switch</text>
+  <text x="270" y="399" text-anchor="middle" class="dev-info">access ports per VLAN</text>
 
   <path d="M 830 300 L 830 360" class="link"/>
   <text x="838" y="335" class="dev-info">trunk 802.1Q</text>
   <rect x="720" y="360" width="220" height="50" rx="6" class="dev"/>
-  <text x="830" y="381" text-anchor="middle" class="dev-name">SW-B: коммутатор L2</text>
-  <text x="830" y="399" text-anchor="middle" class="dev-info">access-порты по VLAN</text>
+  <text x="830" y="381" text-anchor="middle" class="dev-name">SW-B: L2 switch</text>
+  <text x="830" y="399" text-anchor="middle" class="dev-info">access ports per VLAN</text>
 
   <path d="M 270 410 L 270 440" class="link"/>
   <path d="M 830 410 L 830 440" class="link"/>
 
-  <!-- VLAN офиса A -->
+  <!-- Office A VLANs -->
   <text x="55" y="458" class="vlan-head">VLAN</text>
-  <text x="115" y="458" class="vlan-head">Назначение</text>
-  <text x="255" y="458" class="vlan-head">Подсеть</text>
-  <text x="375" y="458" class="vlan-head">Шлюз</text>
+  <text x="115" y="458" class="vlan-head">Purpose</text>
+  <text x="255" y="458" class="vlan-head">Subnet</text>
+  <text x="375" y="458" class="vlan-head">Gateway</text>
   <rect x="45" y="466" width="450" height="28" rx="4" class="row"/>
-  <text x="55" y="485" class="vlan">10</text><text x="115" y="485" class="vlan">Пользователи</text><text x="255" y="485" class="vlan">10.10.10.0/24</text><text x="375" y="485" class="vlan">10.10.10.1</text>
+  <text x="55" y="485" class="vlan">10</text><text x="115" y="485" class="vlan">Users</text><text x="255" y="485" class="vlan">10.10.10.0/24</text><text x="375" y="485" class="vlan">10.10.10.1</text>
   <rect x="45" y="498" width="450" height="28" rx="4" class="row"/>
-  <text x="55" y="517" class="vlan">20</text><text x="115" y="517" class="vlan">Серверы</text><text x="255" y="517" class="vlan">10.10.20.0/24</text><text x="375" y="517" class="vlan">10.10.20.1</text>
+  <text x="55" y="517" class="vlan">20</text><text x="115" y="517" class="vlan">Servers</text><text x="255" y="517" class="vlan">10.10.20.0/24</text><text x="375" y="517" class="vlan">10.10.20.1</text>
   <rect x="45" y="530" width="450" height="28" rx="4" class="row"/>
-  <text x="55" y="549" class="vlan">30</text><text x="115" y="549" class="vlan">IP-телефония</text><text x="255" y="549" class="vlan">10.10.30.0/24</text><text x="375" y="549" class="vlan">10.10.30.1</text>
+  <text x="55" y="549" class="vlan">30</text><text x="115" y="549" class="vlan">Voice (VoIP)</text><text x="255" y="549" class="vlan">10.10.30.0/24</text><text x="375" y="549" class="vlan">10.10.30.1</text>
   <rect x="45" y="562" width="450" height="28" rx="4" class="row-guest"/>
-  <text x="55" y="581" class="vlan">40</text><text x="115" y="581" class="vlan">Гости*</text><text x="255" y="581" class="vlan">10.10.40.0/24</text><text x="375" y="581" class="vlan">10.10.40.1</text>
+  <text x="55" y="581" class="vlan">40</text><text x="115" y="581" class="vlan">Guests*</text><text x="255" y="581" class="vlan">10.10.40.0/24</text><text x="375" y="581" class="vlan">10.10.40.1</text>
   <rect x="45" y="594" width="450" height="28" rx="4" class="row"/>
-  <text x="55" y="613" class="vlan">99</text><text x="115" y="613" class="vlan">Управление</text><text x="255" y="613" class="vlan">10.10.99.0/24</text><text x="375" y="613" class="vlan">10.10.99.1</text>
-  <text x="45" y="648" class="note">* Гости: только интернет, без доступа в 10.0.0.0/8 и в туннель.</text>
+  <text x="55" y="613" class="vlan">99</text><text x="115" y="613" class="vlan">Management</text><text x="255" y="613" class="vlan">10.10.99.0/24</text><text x="375" y="613" class="vlan">10.10.99.1</text>
+  <text x="45" y="648" class="note">* Guests: internet only, no access to 10.0.0.0/8 or the tunnel.</text>
 
-  <!-- VLAN офиса B -->
+  <!-- Office B VLANs -->
   <text x="615" y="458" class="vlan-head">VLAN</text>
-  <text x="675" y="458" class="vlan-head">Назначение</text>
-  <text x="815" y="458" class="vlan-head">Подсеть</text>
-  <text x="935" y="458" class="vlan-head">Шлюз</text>
+  <text x="675" y="458" class="vlan-head">Purpose</text>
+  <text x="815" y="458" class="vlan-head">Subnet</text>
+  <text x="935" y="458" class="vlan-head">Gateway</text>
   <rect x="605" y="466" width="450" height="28" rx="4" class="row"/>
-  <text x="615" y="485" class="vlan">10</text><text x="675" y="485" class="vlan">Пользователи</text><text x="815" y="485" class="vlan">10.20.10.0/24</text><text x="935" y="485" class="vlan">10.20.10.1</text>
+  <text x="615" y="485" class="vlan">10</text><text x="675" y="485" class="vlan">Users</text><text x="815" y="485" class="vlan">10.20.10.0/24</text><text x="935" y="485" class="vlan">10.20.10.1</text>
   <rect x="605" y="498" width="450" height="28" rx="4" class="row"/>
-  <text x="615" y="517" class="vlan">30</text><text x="675" y="517" class="vlan">IP-телефония</text><text x="815" y="517" class="vlan">10.20.30.0/24</text><text x="935" y="517" class="vlan">10.20.30.1</text>
+  <text x="615" y="517" class="vlan">30</text><text x="675" y="517" class="vlan">Voice (VoIP)</text><text x="815" y="517" class="vlan">10.20.30.0/24</text><text x="935" y="517" class="vlan">10.20.30.1</text>
   <rect x="605" y="530" width="450" height="28" rx="4" class="row"/>
-  <text x="615" y="549" class="vlan">99</text><text x="675" y="549" class="vlan">Управление</text><text x="815" y="549" class="vlan">10.20.99.0/24</text><text x="935" y="549" class="vlan">10.20.99.1</text>
-  <text x="605" y="584" class="note">Серверов в филиале нет: файлы и сервисы в VLAN 20 офиса A</text>
-  <text x="605" y="600" class="note">доступны через туннель.</text>
+  <text x="615" y="549" class="vlan">99</text><text x="675" y="549" class="vlan">Management</text><text x="815" y="549" class="vlan">10.20.99.0/24</text><text x="935" y="549" class="vlan">10.20.99.1</text>
+  <text x="605" y="584" class="note">No servers in the branch: services in VLAN 20</text>
+  <text x="605" y="600" class="note">of office A are reached through the tunnel.</text>
   </g>
 
-  <!-- туннель поверх блоков офисов -->
+  <!-- tunnel drawn on top of the office boxes -->
   <path d="M 380 308 Q 550 236 720 308" class="vpn"/>
 </svg>

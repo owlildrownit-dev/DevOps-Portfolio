@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Собирает REPORT.md из результатов run.sh. Все числа берутся из файлов в results/."""
+"""Builds REPORT.md from the output of run.sh. Every number comes from the files in results/.
+
+Usage: report.py RESULTS_DIR DURATION RATE CLIENTS PG_VERSION NCPU
+Set REPORT_GENERATED_AT to override the timestamp (e.g. when re-rendering an old run).
+"""
+import os
 import re
 import sys
 from datetime import datetime
@@ -11,6 +16,7 @@ rate = int(sys.argv[3])
 clients = int(sys.argv[4])
 pg_version = sys.argv[5]
 ncpu = int(sys.argv[6])
+generated_at = os.environ.get("REPORT_GENERATED_AT") or f"{datetime.now():%Y-%m-%d %H:%M}"
 
 
 def pgbench_stats(phase):
@@ -32,7 +38,7 @@ phases = {}
 for p in ("before", "after"):
     s = pgbench_stats(p)
     s["cpu_sec"] = float((res / f"cpu_seconds_{p}.txt").read_text().strip())
-    # средняя загрузка в "ядрах": процессорные секунды / секунды прогона
+    # average load in "cores": CPU seconds divided by run seconds
     s["cores"] = s["cpu_sec"] / duration
     s["pct_one_core"] = 100 * s["cores"]
     s["pct_host"] = 100 * s["cores"] / ncpu
@@ -44,85 +50,85 @@ reduction = 100 * (b["cpu_sec"] - a["cpu_sec"]) / b["cpu_sec"]
 reduction_norm = 100 * (b["cpu_ms_per_tx"] - a["cpu_ms_per_tx"]) / b["cpu_ms_per_tx"]
 tx_diff = 100 * abs(b["tx"] - a["tx"]) / b["tx"]
 
-# Если база не успевает за заданным rate, нагрузка в прогонах разная и сравнение некорректно
+# If the database cannot keep up with the target rate, the two runs saw different load
+# and the comparison is invalid
 warnings = []
-for name, s in (("до", b), ("после", a)):
+for name, s in (("before", b), ("after", a)):
     if s["tps"] is not None and s["tps"] < 0.95 * rate:
-        warnings.append(f"- Прогон «{name}»: фактический TPS {s['tps']:.2f} ниже заданного {rate}. "
-                        "База перегружена, уменьшите RATE.")
+        warnings.append(f"- The \"{name}\" run reached only {s['tps']:.2f} TPS against a target of {rate}. "
+                        "The database is overloaded; lower RATE.")
     if s["lag"] is not None and s["lag"] > 100:
-        warnings.append(f"- Прогон «{name}»: средняя задержка расписания {s['lag']:.0f} мс. "
-                        "Запросы копятся в очереди, уменьшите RATE.")
-validity = ("**Нагрузка сопоставима:** оба прогона выдержали заданный rate."
-            if not warnings else "**ВНИМАНИЕ, сравнение некорректно:**\n\n" + "\n".join(warnings))
+        warnings.append(f"- The \"{name}\" run had an average schedule lag of {s['lag']:.0f} ms. "
+                        "Requests are queuing up; lower RATE.")
+validity = ("**Comparable load:** both runs sustained the target rate."
+            if not warnings else "**WARNING, the comparison is invalid:**\n\n" + "\n".join(warnings))
 
 
 def f(x, nd=1):
-    return "н/д" if x is None else f"{x:,.{nd}f}".replace(",", " ")
+    return "n/a" if x is None else f"{x:,.{nd}f}"
 
 
 def block(name):
     return (res / name).read_text().rstrip()
 
 
-report = f"""# Отчет: нагрузка CPU PostgreSQL до и после оптимизации
+report = f"""# Report: PostgreSQL CPU usage before and after optimization
 
-Сгенерирован {datetime.now():%Y-%m-%d %H:%M} скриптом `run.sh`. Замер на тестовом стенде
-с синтетическими данными.
+Generated on {generated_at} by `run.sh`. Measured on a test environment with synthetic data.
 
-## Условия прогона
+## Test conditions
 
-| Параметр | Значение |
+| Parameter | Value |
 | --- | --- |
-| Версия | {pg_version} |
-| CPU на хосте | {ncpu} |
-| Данные | 200 000 клиентов, 2 000 000 заказов |
-| Нагрузка | pgbench, фиксированный rate {rate} TPS, {clients} клиента, {duration} с на прогон |
-| Что считается CPU | процессорное время всех процессов кластера по /proc/&lt;pid&gt;/stat |
+| Version | {pg_version} |
+| Host CPUs | {ncpu} |
+| Data | 200,000 customers, 2,000,000 orders |
+| Load | pgbench, fixed rate of {rate} TPS, {clients} clients, {duration} s per run |
+| CPU accounting | CPU time of all cluster processes from /proc/&lt;pid&gt;/stat |
 
-## Результат
+## Results
 
-| Показатель | До | После |
+| Metric | Before | After |
 | --- | --- | --- |
-| Выполнено транзакций | {f(b['tx'], 0)} | {f(a['tx'], 0)} |
-| Фактический TPS | {f(b['tps'], 2)} | {f(a['tps'], 2)} |
-| Средняя задержка, мс | {f(b['lat'], 3)} | {f(a['lat'], 3)} |
-| Задержка расписания pgbench (lag), мс | {f(b['lag'], 3)} | {f(a['lag'], 3)} |
-| Процессорное время кластера, с | {f(b['cpu_sec'], 2)} | {f(a['cpu_sec'], 2)} |
-| Средняя загрузка, % одного ядра | {f(b['pct_one_core'])} | {f(a['pct_one_core'])} |
-| Средняя загрузка, % всего хоста ({ncpu} CPU) | {f(b['pct_host'])} | {f(a['pct_host'])} |
-| CPU на транзакцию, мс | {f(b['cpu_ms_per_tx'], 3)} | {f(a['cpu_ms_per_tx'], 3)} |
+| Transactions processed | {f(b['tx'], 0)} | {f(a['tx'], 0)} |
+| Actual TPS | {f(b['tps'], 2)} | {f(a['tps'], 2)} |
+| Average latency, ms | {f(b['lat'], 3)} | {f(a['lat'], 3)} |
+| pgbench schedule lag, ms | {f(b['lag'], 3)} | {f(a['lag'], 3)} |
+| Cluster CPU time, s | {f(b['cpu_sec'], 2)} | {f(a['cpu_sec'], 2)} |
+| Average load, % of one core | {f(b['pct_one_core'])} | {f(a['pct_one_core'])} |
+| Average load, % of the host ({ncpu} CPUs) | {f(b['pct_host'])} | {f(a['pct_host'])} |
+| CPU per transaction, ms | {f(b['cpu_ms_per_tx'], 3)} | {f(a['cpu_ms_per_tx'], 3)} |
 
-**Снижение CPU:** ({f(b['cpu_sec'], 2)} - {f(a['cpu_sec'], 2)}) / {f(b['cpu_sec'], 2)} × 100 = **{f(reduction)}%**.
+**CPU reduction:** ({f(b['cpu_sec'], 2)} - {f(a['cpu_sec'], 2)}) / {f(b['cpu_sec'], 2)} × 100 = **{f(reduction)}%**.
 
 {validity}
 
-**Проверка сопоставимости:** число транзакций в прогонах отличается на {f(tx_diff, 2)}%.
-Нормированное снижение (CPU на одну транзакцию): **{f(reduction_norm)}%**.
+**Comparability check:** the transaction counts of the two runs differ by {f(tx_diff, 2)}%.
+Normalized reduction (CPU per transaction): **{f(reduction_norm)}%**.
 
-## Какие запросы нагружали базу (pg_stat_statements)
+## Top queries (pg_stat_statements)
 
-До оптимизации:
+Before the optimization:
 
 ```
 {block('top_queries_before.txt')}
 ```
 
-После оптимизации:
+After the optimization:
 
 ```
 {block('top_queries_after.txt')}
 ```
 
-## Планы запросов
+## Query plans
 
-До (`explain_before.txt`):
+Before (`explain_before.txt`):
 
 ```
 {block('explain_before.txt')}
 ```
 
-После (`explain_after.txt`):
+After (`explain_after.txt`):
 
 ```
 {block('explain_after.txt')}

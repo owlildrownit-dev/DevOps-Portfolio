@@ -12,7 +12,7 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 0   # при обновлении не уменьшаем число готовых подов
+      maxUnavailable: 0   # never drop below the current number of ready pods during a rollout
       maxSurge: 1
   selector:
     matchLabels:
@@ -64,7 +64,7 @@ spec:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
           volumeMounts:
-            - name: tmp            # gunicorn пишет служебные файлы в /tmp
+            - name: tmp            # gunicorn writes its worker heartbeat files to /tmp
               mountPath: /tmp
       volumes:
         - name: tmp

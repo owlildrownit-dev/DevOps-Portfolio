@@ -1,42 +1,42 @@
 # k8s: kind + Helm
 
 ```bash
-./setup-cluster.sh   # кластер, Traefik, metrics-server, PostgreSQL, Helm-релиз orders-api
-./load-test.sh       # нагрузка для проверки HPA (Ctrl+C для остановки)
-./teardown.sh        # удалить кластер
+./setup-cluster.sh   # cluster, Traefik, metrics-server, PostgreSQL, orders-api Helm release
+./load-test.sh       # traffic for exercising the HPA (stop with Ctrl+C)
+./teardown.sh        # delete the cluster
 ```
 
-Требования: Docker, kind, kubectl, Helm 3/4.
+Requirements: Docker, kind, kubectl, Helm 3 or 4.
 
-## Путь запроса
+## Request path
 
 ```
 curl -H "Host: orders.demo.local" localhost:8081
-  → порт 8081 хоста → NodePort 30080 (extraPortMappings в kind-cluster.yaml)
-  → Traefik → Ingress по host
-  → Service orders-api (ClusterIP) → поды в состоянии Ready
-  → контейнер :8000 → Service postgres → StatefulSet postgres-0
+  → host port 8081 → NodePort 30080 (extraPortMappings in kind-cluster.yaml)
+  → Traefik → Ingress rule matched by host
+  → orders-api Service (ClusterIP) → pods in the Ready state
+  → container :8000 → postgres Service → StatefulSet postgres-0
 ```
 
-## Компоненты
+## Components
 
-| Тема | Где | Решение |
+| Topic | Where | Decision |
 | --- | --- | --- |
-| Кластер | `kind-cluster.yaml` | 1 control plane + 2 worker, явные диапазоны подов и сервисов |
-| Ingress | `setup-cluster.sh` | Traefik, `ingressClassName: traefik`; ingress-nginx выведен из поддержки ([анонс](https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/)) |
-| Образы | `setup-cluster.sh`, шаг 1b | загрузка с хоста через `kind load image-archive`: узлы работают без доступа к registry |
-| Helm | `charts/orders-api` | версия образа через `--set image.tag`, откат `helm rollback` |
-| Secret | `setup-cluster.sh`, шаг 4 | создается вне чарта, не попадает в git и историю Helm; Secret в etcd по умолчанию не шифруется ([документация](https://kubernetes.io/docs/concepts/security/secrets-good-practices/)) |
-| Probes | `values.yaml` | liveness без проверки БД, readiness с проверкой БД, startup на время запуска |
-| HPA | `templates/hpa.yaml` | цель 60% от `requests.cpu`, 2..5 реплик, метрики от metrics-server |
-| Обновление | `templates/deployment.yaml` | `maxUnavailable: 0`, `maxSurge: 1`, PodDisruptionBudget |
-| Безопасность пода | `templates/deployment.yaml` | не root, read-only root FS, `/tmp` через emptyDir |
+| Cluster | `kind-cluster.yaml` | 1 control-plane node + 2 workers, explicit pod and service CIDRs |
+| Ingress | `setup-cluster.sh` | Traefik with `ingressClassName: traefik`; ingress-nginx has been retired ([announcement](https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/)) |
+| Images | `setup-cluster.sh`, step 1b | loaded from the host with `kind load image-archive`, so the nodes need no registry access |
+| Helm | `charts/orders-api` | image version set via `--set image.tag`, rollback with `helm rollback` |
+| Secret | `setup-cluster.sh`, step 4 | created outside the chart, so it stays out of git and the Helm history; Secrets are not encrypted in etcd by default ([documentation](https://kubernetes.io/docs/concepts/security/secrets-good-practices/)) |
+| Probes | `values.yaml` | liveness does not check the DB, readiness does, startup covers the boot time |
+| HPA | `templates/hpa.yaml` | targets 60% of `requests.cpu`, 2 to 5 replicas, metrics from metrics-server |
+| Rollouts | `templates/deployment.yaml` | `maxUnavailable: 0`, `maxSurge: 1`, plus a PodDisruptionBudget |
+| Pod security | `templates/deployment.yaml` | non-root user, read-only root filesystem, `/tmp` on an emptyDir |
 
-## Проверка (GitHub Codespaces, 28.10.2026)
+## Verification (GitHub Codespaces, 2026-10-28)
 
-- HPA: CPU до 304% от requests при цели 60%, реплики 2 → 4 → 5 (максимум).
-- Обновление до 1.1.0 и `helm rollback orders-api 1`: три ревизии в `helm history`.
-- `helm lint`: без ошибок.
+- HPA: CPU reached 304% of requests against a 60% target, and the replicas scaled 2 → 4 → 5 (the maximum).
+- Upgrade to 1.1.0 followed by `helm rollback orders-api 1`: three revisions in `helm history`.
+- `helm lint`: no errors.
 
 ![HPA](../docs/screenshots/04-k8s-hpa-scaling.png)
 ![rolling update](../docs/screenshots/04-k8s-rolling-update.png)

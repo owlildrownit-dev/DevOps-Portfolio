@@ -10,7 +10,7 @@
 - name: Deployed version is the expected one
   ansible.builtin.assert:
     that: health.json.version == app_version
-    fail_msg: "Ожидалась версия {{ app_version }}, отвечает {{ health.json.version }}"
+    fail_msg: "Expected version {{ app_version }}, got {{ health.json.version }}"
 
 - name: Readiness (database connection)
   ansible.builtin.uri:

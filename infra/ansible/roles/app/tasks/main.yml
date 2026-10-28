@@ -1,4 +1,4 @@
-# Сборка образа через BuildKit (Dockerfile использует RUN --mount, которого нет в старом сборщике)
+# Build with BuildKit (the Dockerfile uses RUN --mount, which the legacy builder lacks)
 - name: Build application image
   community.docker.docker_image_build:
     name: "{{ app_name }}"
@@ -7,8 +7,8 @@
     dockerfile: Dockerfile
     rebuild: always
 
-# Rolling update: реплики обновляются по одной, следующая только после healthy предыдущей,
-# поэтому балансировщик всегда имеет хотя бы одну живую реплику
+# Rolling update: replicas are replaced one at a time, the next only after the previous one is healthy,
+# so the load balancer always has at least one live replica
 - name: Roll out replicas one by one
   ansible.builtin.include_tasks: replica.yml
   loop: "{{ range(1, app_replicas + 1) | list }}"

@@ -1,17 +1,17 @@
 variable "project" {
-  description = "Префикс имен всех ресурсов стенда"
+  description = "Name prefix for all resources"
   type        = string
   default     = "demo"
 }
 
 variable "postgres_image" {
-  description = "Образ PostgreSQL"
+  description = "PostgreSQL image"
   type        = string
   default     = "postgres:16"
 }
 
 variable "db_password" {
-  description = "Пароль пользователя БД. Передается через TF_VAR_db_password, в коде не хранится"
+  description = "Database user password. Passed via TF_VAR_db_password and never stored in code"
   type        = string
   sensitive   = true
 }

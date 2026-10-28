@@ -1,5 +1,5 @@
-# PostgreSQL для стенда. Пароль берется из Secret orders-db,
-# который создает setup-cluster.sh (в git пароля нет).
+# PostgreSQL for the lab. The password comes from the orders-db Secret,
+# which setup-cluster.sh creates (the password is never stored in git).
 apiVersion: v1
 kind: Service
 metadata:
@@ -7,7 +7,7 @@ metadata:
   labels:
     app: postgres
 spec:
-  clusterIP: None   # headless Service для StatefulSet
+  clusterIP: None   # headless Service for the StatefulSet
   selector:
     app: postgres
   ports:

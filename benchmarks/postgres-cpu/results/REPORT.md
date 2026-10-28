@@ -1,41 +1,40 @@
-# Отчет: нагрузка CPU PostgreSQL до и после оптимизации
+# Report: PostgreSQL CPU usage before and after optimization
 
-Сгенерирован 2026-10-28 17:12 скриптом `run_lab.sh`. Это замер на **демо-стенде**
-с синтетическими данными, а не данные production.
+Generated on 2026-10-28 17:12 UTC by `run.sh`. Measured on a test environment with synthetic data.
 
-## Условия прогона
+## Test conditions
 
-| Параметр | Значение |
+| Parameter | Value |
 | --- | --- |
-| Версия | postgres (PostgreSQL) 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) |
-| CPU на хосте | 2 |
-| Данные | 200 000 клиентов, 2 000 000 заказов |
-| Нагрузка | pgbench, фиксированный rate 3 TPS, 4 клиента, 120 с на прогон |
-| Что считается CPU | процессорное время всех процессов кластера по /proc/&lt;pid&gt;/stat |
+| Version | postgres (PostgreSQL) 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) |
+| Host CPUs | 2 |
+| Data | 200,000 customers, 2,000,000 orders |
+| Load | pgbench, fixed rate of 3 TPS, 4 clients, 120 s per run |
+| CPU accounting | CPU time of all cluster processes from /proc/&lt;pid&gt;/stat |
 
-## Результат
+## Results
 
-| Показатель | До | После |
+| Metric | Before | After |
 | --- | --- | --- |
-| Выполнено транзакций | 384 | 360 |
-| Фактический TPS | 3.20 | 3.01 |
-| Средняя задержка, мс | 393.806 | 0.997 |
-| Задержка расписания pgbench (lag), мс | 53.410 | 0.135 |
-| Процессорное время кластера, с | 125.09 | 0.43 |
-| Средняя загрузка, % одного ядра | 104.2 | 0.4 |
-| Средняя загрузка, % всего хоста (2 CPU) | 52.1 | 0.2 |
-| CPU на транзакцию, мс | 325.755 | 1.194 |
+| Transactions processed | 384 | 360 |
+| Actual TPS | 3.20 | 3.01 |
+| Average latency, ms | 393.806 | 0.997 |
+| pgbench schedule lag, ms | 53.410 | 0.135 |
+| Cluster CPU time, s | 125.09 | 0.43 |
+| Average load, % of one core | 104.2 | 0.4 |
+| Average load, % of the host (2 CPUs) | 52.1 | 0.2 |
+| CPU per transaction, ms | 325.755 | 1.194 |
 
-**Снижение CPU:** (125.09 - 0.43) / 125.09 × 100 = **99.7%**.
+**CPU reduction:** (125.09 - 0.43) / 125.09 × 100 = **99.7%**.
 
-**Нагрузка сопоставима:** оба прогона выдержали заданный rate.
+**Comparable load:** both runs sustained the target rate.
 
-**Проверка сопоставимости:** число транзакций в прогонах отличается на 6.25%.
-Нормированное снижение (CPU на одну транзакцию): **99.6%**.
+**Comparability check:** the transaction counts of the two runs differ by 6.25%.
+Normalized reduction (CPU per transaction): **99.6%**.
 
-## Какие запросы нагружали базу (pg_stat_statements)
+## Top queries (pg_stat_statements)
 
-До оптимизации:
+Before the optimization:
 
 ```
  calls | total_ms | mean_ms | pct_time | blocks_touched |                                 query                                  
@@ -48,7 +47,7 @@
 (5 rows)
 ```
 
-После оптимизации:
+After the optimization:
 
 ```
  calls | total_ms | mean_ms | pct_time | blocks_touched |                                 query                                  
@@ -61,12 +60,12 @@
 (5 rows)
 ```
 
-## Планы запросов
+## Query plans
 
-До (`explain_before.txt`):
+Before (`explain_before.txt`):
 
 ```
-### Запрос 1: история заказов клиента
+### Query 1: customer order history
                                          QUERY PLAN                                         
 --------------------------------------------------------------------------------------------
  Limit (actual time=156.608..163.737 rows=9 loops=1)
@@ -92,7 +91,7 @@
 (20 rows)
 
 
-### Запрос 2: поиск клиента по email
+### Query 2: customer lookup by email
                                     QUERY PLAN                                    
 ----------------------------------------------------------------------------------
  Gather (actual time=2.947..72.546 rows=1 loops=1)
@@ -110,10 +109,10 @@
 (12 rows)
 ```
 
-После (`explain_after.txt`):
+After (`explain_after.txt`):
 
 ```
-### Запрос 1: история заказов клиента
+### Query 1: customer order history
                                                   QUERY PLAN                                                  
 --------------------------------------------------------------------------------------------------------------
  Limit (actual time=0.199..0.201 rows=9 loops=1)
@@ -137,7 +136,7 @@
 (18 rows)
 
 
-### Запрос 2: поиск клиента по email
+### Query 2: customer lookup by email
                                             QUERY PLAN                                             
 ---------------------------------------------------------------------------------------------------
  Index Scan using customers_email_lower_idx on customers (actual time=0.033..0.033 rows=1 loops=1)

@@ -1,6 +1,6 @@
-# Инфраструктура стенда: сеть, том с данными и база.
-# Приложение и балансировщик выкатывает Ansible (см. ../ansible),
-# Terraform только готовит окружение и передает Ansible его параметры.
+# Infrastructure: network, data volume and database.
+# Ansible deploys the application and the load balancer (see ../ansible);
+# Terraform only prepares the environment and hands its parameters to Ansible.
 
 locals {
   labels = {
@@ -58,7 +58,7 @@ resource "docker_container" "db" {
     retries  = 10
   }
 
-  # Terraform дождется статуса healthy, прежде чем завершить apply
+  # Terraform waits for the healthy status before apply completes
   wait         = true
   wait_timeout = 120
 
@@ -71,7 +71,7 @@ resource "docker_container" "db" {
   }
 }
 
-# Передача параметров инфраструктуры в Ansible: сгенерированный файл переменных
+# Hands infrastructure parameters to Ansible through a generated variables file
 resource "local_file" "ansible_vars" {
   filename        = "${path.module}/../ansible/inventory/group_vars/all/terraform.yml"
   file_permission = "0644"

@@ -1,4 +1,4 @@
-# секреты и состояние: никогда не коммитить
+# secrets and state: never commit
 **/.db_password
 **/terraform.tfstate*
 **/.terraform/
@@ -6,7 +6,7 @@
 **/group_vars/all/terraform.yml
 **/.rendered/
 **/.pgdata/
-# временные архивы
+# temporary archives
 *.zip
 *.tar
 __pycache__/

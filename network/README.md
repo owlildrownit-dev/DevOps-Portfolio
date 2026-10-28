@@ -1,30 +1,30 @@
-# Сеть двух офисов: референсная схема
+# Two-office network: reference topology
 
 ![topology](topology.png)
 
-Обезличенная типовая топология: публичные адреса из блоков для документации
-([RFC 5737](https://www.rfc-editor.org/rfc/rfc5737)), внутренние из RFC 1918.
+An anonymized, typical topology. Public addresses come from the blocks reserved for documentation
+([RFC 5737](https://www.rfc-editor.org/rfc/rfc5737)); internal addresses come from RFC 1918.
 
-## Состав
+## Components
 
-| Элемент | Офис A | Офис B |
+| Element | Office A | Office B |
 | --- | --- | --- |
-| Маршрутизатор / МСЭ | шлюзы VLAN, NAT, IPsec, DHCP | то же |
+| Router / firewall | VLAN gateways, NAT, IPsec, DHCP | same |
 | LAN | 10.10.0.0/16 | 10.20.0.0/16 |
-| VLAN | 10 пользователи, 20 серверы, 30 телефония, 40 гости, 99 управление | 10, 30, 99 |
-| Связь | IPsec site-to-site 10.10.0.0/16 ⇄ 10.20.0.0/16 | |
-| NAT | masquerade в интернет, межофисный трафик исключен | то же |
+| VLANs | 10 users, 20 servers, 30 voice, 40 guests, 99 management | 10, 30, 99 |
+| Inter-office link | IPsec site-to-site 10.10.0.0/16 ⇄ 10.20.0.0/16 | |
+| NAT | masquerade to the internet, inter-office traffic exempt | same |
 
-Гостевой VLAN изолирован: только интернет, без доступа в 10.0.0.0/8 и в туннель.
-Межофисный трафик исключается из NAT, иначе он уйдет в интернет с адресом WAN мимо туннеля.
+The guest VLAN is isolated: internet access only, no access to 10.0.0.0/8 or the tunnel.
+Inter-office traffic must be exempt from NAT; otherwise it leaves through the WAN address and bypasses the tunnel.
 
-## Диагностика по уровням
+## Troubleshooting by layer
 
-| Уровень | Проверка | Команды (Linux; на сетевом оборудовании аналоги) |
+| Layer | What to check | Commands (Linux; network devices have equivalents) |
 | --- | --- | --- |
-| L1-L2 | линк, ошибки, VLAN на порту | `ip -s link`, `ethtool eth0`, таблица MAC |
-| L3 | адрес, шлюз, маршрут | `ip addr`, `ip route get <адрес>`, `ping`, `traceroute`, `mtr` |
-| Туннель | состояние IKE/IPsec SA, счетчики | статус SA на маршрутизаторах, логи IKE |
-| NAT / МСЭ | трансляция межофисного трафика, счетчики правил | `tcpdump -ni <if> host <адрес>` с обеих сторон |
-| DNS | разрешение имен | `dig`, `nslookup` |
-| MTU | большие пакеты через туннель | `ping -M do -s 1400 <адрес>` с уменьшением размера |
+| L1-L2 | link state, errors, VLAN on the port | `ip -s link`, `ethtool eth0`, MAC table |
+| L3 | address, gateway, route | `ip addr`, `ip route get <address>`, `ping`, `traceroute`, `mtr` |
+| Tunnel | IKE/IPsec SA state and counters | SA status on the routers, IKE logs |
+| NAT / firewall | whether inter-office traffic gets translated, rule counters | `tcpdump -ni <if> host <address>` on both sides |
+| DNS | name resolution | `dig`, `nslookup` |
+| MTU | large packets through the tunnel | `ping -M do -s 1400 <address>`, then decrease the size |

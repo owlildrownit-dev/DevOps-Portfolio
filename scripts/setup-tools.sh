@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Ставит все, что нужно стенду, на Ubuntu/Debian (GitHub Codespaces, WSL2, облачная ВМ).
-# Устанавливает только то, чего нет. Запуск: bash scripts/setup-tools.sh
+# Installs everything this project needs on Ubuntu/Debian (GitHub Codespaces, WSL2, a cloud VM).
+# Installs only what is missing. Usage: bash scripts/setup-tools.sh
 set -euo pipefail
 
 KIND_VERSION="${KIND_VERSION:-v0.33.0}"
@@ -13,29 +13,29 @@ ROOT="$(cd "$HERE/.." && pwd)"
 have() { command -v "$1" >/dev/null 2>&1; }
 step() { printf '\n==== %s ====\n' "$*"; }
 
-# После распаковки zip через браузер права на запуск могут потеряться
+# Execute permissions can get lost when files are unpacked from a zip in the browser
 find "$ROOT" -name '*.sh' -exec chmod +x {} +
 chmod +x "$ROOT/benchmarks/postgres-cpu/report.py"
 
-step "Базовые пакеты"
+step "Base packages"
 $SUDO apt-get update -qq
 $SUDO apt-get install -y -qq curl wget gnupg ca-certificates unzip openssl python3-pip >/dev/null
 
 step "Docker"
 if have docker && docker info >/dev/null 2>&1; then
-  docker version --format 'Docker {{.Server.Version}}: уже работает'
+  docker version --format 'Docker {{.Server.Version}}: already running'
 else
-  echo "Docker не найден или не запущен."
-  echo "В Codespaces он есть по умолчанию. На своей ВМ: https://docs.docker.com/engine/install/ubuntu/"
+  echo "Docker is not installed or not running."
+  echo "Codespaces provides it by default. On your own VM, see https://docs.docker.com/engine/install/ubuntu/"
   exit 1
 fi
 
-step "PostgreSQL (сервер + pgbench, для раздела 3)"
+step "PostgreSQL (server + pgbench, for benchmarks/postgres-cpu)"
 if ls /usr/lib/postgresql/*/bin/pgbench >/dev/null 2>&1; then
-  echo "уже установлен: $(ls -d /usr/lib/postgresql/*/bin | head -1)"
+  echo "already installed: $(ls -d /usr/lib/postgresql/*/bin | head -1)"
 else
   $SUDO apt-get install -y -qq postgresql postgresql-contrib >/dev/null
-  # системный сервис не нужен: benchmarks/postgres-cpu/run.sh поднимает свой кластер
+  # the system service is not needed: benchmarks/postgres-cpu/run.sh starts its own cluster
   $SUDO service postgresql stop >/dev/null 2>&1 || true
 fi
 
@@ -48,7 +48,7 @@ if have terraform; then terraform version | head -1; else
   terraform version | head -1
 fi
 
-step "Ansible + коллекция community.docker"
+step "Ansible + the community.docker collection"
 if ! have ansible-playbook; then
   python3 -m pip install --user -q ansible-core docker 2>/dev/null \
     || python3 -m pip install --user -q --break-system-packages ansible-core docker
@@ -78,8 +78,8 @@ if have kind; then kind version; else
   kind version
 fi
 
-step "Сеть Docker: трафик между контейнерами"
+step "Docker networking: container-to-container traffic"
 bash "$HERE/fix-docker-network.sh"
 
-step "Готово"
-echo "Если ansible не находится в новом терминале, выполните: export PATH=\"\$HOME/.local/bin:\$PATH\""
+step "Done"
+echo "If a new terminal cannot find ansible, run: export PATH=\"\$HOME/.local/bin:\$PATH\""

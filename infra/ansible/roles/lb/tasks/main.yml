@@ -25,6 +25,6 @@
     labels:
       stand: "{{ stand_name }}"
       managed: ansible
-    # перезапуск только если конфиг изменился
+    # restart only when the config has changed
     restart: "{{ nginx_conf.changed }}"
     state: started

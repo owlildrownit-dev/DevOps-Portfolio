@@ -1,4 +1,4 @@
--- Идемпотентная миграция: можно запускать при каждой выкладке.
+-- Idempotent migration: safe to run on every deployment.
 CREATE TABLE IF NOT EXISTS customers (
     id          bigint PRIMARY KEY,
     email       text   NOT NULL,
@@ -14,11 +14,11 @@ CREATE TABLE IF NOT EXISTS orders (
     created_at   timestamptz NOT NULL DEFAULT now()
 );
 
--- Индексы из 03-postgres-cpu
+-- Indexes from benchmarks/postgres-cpu
 CREATE INDEX IF NOT EXISTS orders_customer_created_idx ON orders (customer_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS customers_email_lower_idx  ON customers (lower(email));
 
--- Демо-данные только если таблицы пустые
+-- Sample data, only if the tables are empty
 INSERT INTO customers (id, email, full_name)
 SELECT g, 'user' || g || '@example.org', 'Customer ' || g
 FROM generate_series(1, 1000) g

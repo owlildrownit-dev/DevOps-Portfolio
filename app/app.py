@@ -1,9 +1,9 @@
-"""orders-api: маленькое демо-приложение для стенда.
+"""orders-api: a small service used throughout this lab.
 
-Эндпоинты:
-  GET /healthz                 liveness: процесс жив и отвечает
-  GET /readyz                  readiness: есть соединение с PostgreSQL
-  GET /customers/<id>/orders   последние 20 заказов клиента (запрос из benchmarks/postgres-cpu)
+Endpoints:
+  GET /healthz                 liveness: the process is up and responding
+  GET /readyz                  readiness: the PostgreSQL connection works
+  GET /customers/<id>/orders   a customer's 20 most recent orders (the query from benchmarks/postgres-cpu)
 """
 import os
 
