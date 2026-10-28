@@ -33,8 +33,6 @@ of the second run is in the `results/` directories.
 
 Calculations: (704.2 − 198.0) / 704.2 × 100 ≈ 71.9%; (125.09 − 0.43) / 125.09 × 100 ≈ 99.7%.
 
-The screenshots were taken during run 1, before the scripts' output was translated into English.
-
 **HPA under load: 2 → 4 → 5 replicas**
 
 ![HPA](docs/screenshots/04-k8s-hpa-scaling.png)
