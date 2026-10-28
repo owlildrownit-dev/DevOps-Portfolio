@@ -1,0 +1,17 @@
+# Однослойный вариант (для сравнения размера с multi-stage в app/Dockerfile).
+# Недостатки:
+#   1. Компилятор и заголовочные файлы (build-essential, libpq-dev) нужны только
+#      для сборки psycopg2, но остаются в итоговом образе.
+#   2. Кэш apt и pip остается в слоях.
+#   3. COPY . . до установки зависимостей: любая правка кода сбрасывает кэш pip.
+#   4. Приложение работает от root.
+FROM python:3.12-slim
+
+WORKDIR /app
+COPY . .
+
+RUN apt-get update && apt-get install -y build-essential libpq-dev
+RUN pip install -r requirements.txt
+
+EXPOSE 8000
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "app:app"]

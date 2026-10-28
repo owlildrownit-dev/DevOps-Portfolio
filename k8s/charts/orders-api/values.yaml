@@ -1,0 +1,57 @@
+replicaCount: 2   # используется, только если autoscaling.enabled=false
+
+image:
+  repository: orders-api
+  tag: ""          # пусто = appVersion из Chart.yaml
+  pullPolicy: IfNotPresent
+
+# Строка подключения к БД берется из уже существующего Secret, чарт секрет не создает:
+# так пароль не попадает ни в values, ни в историю релизов Helm
+database:
+  existingSecret: orders-db
+  urlKey: DATABASE_URL
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+ingress:
+  enabled: true
+  className: traefik
+  host: orders.demo.local
+  path: /
+
+resources:
+  requests:
+    cpu: 100m        # от requests HPA считает процент загрузки CPU
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+probes:
+  # liveness: процесс жив. Не проверяет БД, иначе падение БД перезапустило бы все поды
+  liveness:
+    path: /healthz
+    periodSeconds: 10
+    failureThreshold: 3
+  # readiness: под готов принимать трафик (есть соединение с БД)
+  readiness:
+    path: /readyz
+    periodSeconds: 5
+    failureThreshold: 2
+  # startup: даем время на старт, пока он идет, liveness не проверяется
+  startup:
+    path: /healthz
+    periodSeconds: 2
+    failureThreshold: 30
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 60
+
+podDisruptionBudget:
+  minAvailable: 1

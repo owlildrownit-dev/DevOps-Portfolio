@@ -1,0 +1,14 @@
+{{- if .Values.podDisruptionBudget }}
+# При плановых работах с нодами (kubectl drain) хотя бы один под остается доступен
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "orders-api.fullname" . }}
+  labels:
+    {{- include "orders-api.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "orders-api.selectorLabels" . | nindent 6 }}
+{{- end }}

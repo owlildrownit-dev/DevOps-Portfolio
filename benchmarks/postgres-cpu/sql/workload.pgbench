@@ -1,0 +1,18 @@
+-- Смесь запросов приложения для pgbench (одна "транзакция" = один заход пользователя).
+-- Случайный клиент на каждый проход.
+\set cid random(1, 200000)
+
+-- 1. История заказов клиента (страница "Мои заказы")
+SELECT id, status, amount, created_at
+FROM orders
+WHERE customer_id = :cid
+ORDER BY created_at DESC
+LIMIT 20;
+
+-- 2. Вход в аккаунт: поиск клиента по email без учета регистра
+SELECT id, full_name
+FROM customers
+WHERE lower(email) = lower('user' || :cid || '@example.org');
+
+-- 3. Карточка заказа по первичному ключу (этот запрос и так быстрый)
+SELECT id, status, amount FROM orders WHERE id = :cid * 10;

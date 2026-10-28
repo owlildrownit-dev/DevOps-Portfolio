@@ -1,0 +1,16 @@
+# Сборка образа через BuildKit (Dockerfile использует RUN --mount, которого нет в старом сборщике)
+- name: Build application image
+  community.docker.docker_image_build:
+    name: "{{ app_name }}"
+    tag: "{{ app_version }}"
+    path: "{{ app_src_dir }}"
+    dockerfile: Dockerfile
+    rebuild: always
+
+# Rolling update: реплики обновляются по одной, следующая только после healthy предыдущей,
+# поэтому балансировщик всегда имеет хотя бы одну живую реплику
+- name: Roll out replicas one by one
+  ansible.builtin.include_tasks: replica.yml
+  loop: "{{ range(1, app_replicas + 1) | list }}"
+  loop_control:
+    loop_var: replica_index

@@ -1,0 +1,12 @@
+# секреты и состояние: никогда не коммитить
+**/.db_password
+**/terraform.tfstate*
+**/.terraform/
+**/.terraform.lock.hcl
+**/group_vars/all/terraform.yml
+**/.rendered/
+**/.pgdata/
+# временные архивы
+*.zip
+*.tar
+__pycache__/

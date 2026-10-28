@@ -1,0 +1,24 @@
+- name: Liveness through load balancer
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ lb_port }}/healthz"
+    return_content: true
+  register: health
+  retries: 10
+  delay: 2
+  until: health.status == 200
+
+- name: Deployed version is the expected one
+  ansible.builtin.assert:
+    that: health.json.version == app_version
+    fail_msg: "Ожидалась версия {{ app_version }}, отвечает {{ health.json.version }}"
+
+- name: Readiness (database connection)
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ lb_port }}/readyz"
+
+- name: Business endpoint returns data
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ lb_port }}/customers/1/orders"
+    return_content: true
+  register: orders
+  failed_when: orders.json.orders | length == 0

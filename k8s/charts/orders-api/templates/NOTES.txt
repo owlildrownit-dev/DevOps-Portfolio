@@ -1,0 +1,7 @@
+orders-api {{ .Values.image.tag | default .Chart.AppVersion }} установлен в namespace {{ .Release.Namespace }}.
+
+Проверка через Ingress (kind пробрасывает 30080 -> localhost:8081):
+  curl -H "Host: {{ .Values.ingress.host }}" http://127.0.0.1:8081/healthz
+
+Состояние:
+  kubectl get deploy,po,svc,ingress,hpa -l app.kubernetes.io/instance={{ .Release.Name }}

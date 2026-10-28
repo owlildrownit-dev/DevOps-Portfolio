@@ -1,0 +1,27 @@
+- name: Wait until PostgreSQL accepts connections
+  community.docker.docker_container_exec:
+    container: "{{ db_container }}"
+    argv: [pg_isready, -U, "{{ db_user }}", -d, "{{ db_name }}"]
+  register: pg_ready
+  retries: 20
+  delay: 3
+  until: pg_ready.rc == 0
+  changed_when: false
+
+- name: Apply schema migration
+  community.docker.docker_container_exec:
+    container: "{{ db_container }}"
+    argv:
+      - psql
+      - -U
+      - "{{ db_user }}"
+      - -d
+      - "{{ db_name }}"
+      - -v
+      - ON_ERROR_STOP=1
+      - -c
+      - "{{ lookup('ansible.builtin.file', 'schema.sql') }}"
+  register: migration
+  # psql -c с несколькими командами печатает результат только последней.
+  # "INSERT 0 0" значит, что данные уже были: считаем, что изменений нет
+  changed_when: "'INSERT 0 0' not in migration.stdout"
