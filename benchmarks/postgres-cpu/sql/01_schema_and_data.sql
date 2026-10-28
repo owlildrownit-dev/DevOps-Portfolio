@@ -1,6 +1,3 @@
--- Sample online store schema: customers and orders.
--- The data is synthetic and generated with generate_series, so it is reproducible.
-
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS customers;
 
@@ -19,11 +16,9 @@ CREATE TABLE orders (
     created_at   timestamptz NOT NULL
 );
 
--- setseed makes the data identical on every run
 SELECT setseed(0.42);
 
--- 200,000 customers. Emails use mixed case, which is common
--- when sign-up does not normalize input
+-- Mixed-case emails, as when sign-up does not normalize input
 INSERT INTO customers (id, email, full_name, created_at)
 SELECT g,
        CASE WHEN g % 3 = 0 THEN 'User' || g || '@Example.org'
@@ -32,7 +27,6 @@ SELECT g,
        now() - (random() * interval '1000 days')
 FROM generate_series(1, 200000) AS g;
 
--- 2,000,000 orders
 INSERT INTO orders (id, customer_id, status, amount, created_at)
 SELECT g,
        1 + floor(random() * 200000)::bigint,
@@ -41,8 +35,7 @@ SELECT g,
        now() - (random() * interval '365 days')
 FROM generate_series(1, 2000000) AS g;
 
--- Initial state: there is a plain index on email,
--- but the application searches by lower(email), so the index is not used.
+-- The app queries lower(email), so this plain index is never used
 CREATE INDEX customers_email_idx ON customers (email);
 
 VACUUM ANALYZE customers;

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Tears down the environment: Ansible-managed containers (label stand=demo), then the Terraform resources.
+# Containers first: Terraform cannot remove a network that still has endpoints
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 cd "$HERE"

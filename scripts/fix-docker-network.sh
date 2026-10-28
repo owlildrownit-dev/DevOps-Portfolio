@@ -1,14 +1,7 @@
 #!/usr/bin/env bash
-# Allows traffic between Docker containers when the legacy iptables table drops it.
-#
-# Why: Docker running inside a container (GitHub Codespaces) sees two iptables backends,
-# nft and legacy. Docker writes its rules to nft, but with net.bridge.bridge-nf-call-iptables=1
-# bridged traffic also traverses the legacy table. If that table has a FORWARD DROP policy,
-# packets between containers are silently dropped: timeouts, and ping fails.
-# Write-up: docs/incidents/2026-10-28-container-traffic-timeouts.md
-#
-# The rule does not survive a restart, so devcontainer.json runs this script
-# every time the codespace starts (postStartCommand).
+# Docker writes its rules to nft, but bridged traffic also passes the legacy table,
+# whose FORWARD DROP policy silently drops container-to-container packets.
+# See docs/incidents/2026-10-28-container-traffic-timeouts.md. Runs on every codespace start.
 set -euo pipefail
 SUDO=""; if [[ $(id -u) -ne 0 ]]; then SUDO="sudo"; fi
 

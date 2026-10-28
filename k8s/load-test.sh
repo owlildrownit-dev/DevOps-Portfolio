@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# HPA load test: generates traffic and watches the replica count grow.
-# Stop with Ctrl+C (the load generator pods are removed automatically).
+# Stop with Ctrl+C; the load generator pods are removed on exit
 set -euo pipefail
 LOADERS="${LOADERS:-3}"
 

@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# Installs everything this project needs on Ubuntu/Debian (GitHub Codespaces, WSL2, a cloud VM).
-# Installs only what is missing. Usage: bash scripts/setup-tools.sh
+# Installs the missing tools on Ubuntu/Debian (Codespaces, WSL2, a VM)
 set -euo pipefail
 
 KIND_VERSION="${KIND_VERSION:-v0.33.0}"
-ARCH=$(dpkg --print-architecture)       # amd64 / arm64
+ARCH=$(dpkg --print-architecture)
 CODENAME=$(. /etc/os-release && echo "$VERSION_CODENAME")
 SUDO=""; if [[ $(id -u) -ne 0 ]]; then SUDO="sudo"; fi
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -13,7 +12,6 @@ ROOT="$(cd "$HERE/.." && pwd)"
 have() { command -v "$1" >/dev/null 2>&1; }
 step() { printf '\n==== %s ====\n' "$*"; }
 
-# Execute permissions can get lost when files are unpacked from a zip in the browser
 find "$ROOT" -name '*.sh' -exec chmod +x {} +
 chmod +x "$ROOT/benchmarks/postgres-cpu/report.py"
 
@@ -35,7 +33,6 @@ if ls /usr/lib/postgresql/*/bin/pgbench >/dev/null 2>&1; then
   echo "already installed: $(ls -d /usr/lib/postgresql/*/bin | head -1)"
 else
   $SUDO apt-get install -y -qq postgresql postgresql-contrib >/dev/null
-  # the system service is not needed: benchmarks/postgres-cpu/run.sh starts its own cluster
   $SUDO service postgresql stop >/dev/null 2>&1 || true
 fi
 

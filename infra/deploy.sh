@@ -1,15 +1,11 @@
 #!/usr/bin/env bash
-# Full deployment with a single command, plus timing.
-#   ./deploy.sh                     deploy version 1.0.0
-#   APP_VERSION=1.1.0 ./deploy.sh   upgrade (rolling update)
-# Every run appends a line to results/deploy_times.csv
+# Usage: ./deploy.sh | APP_VERSION=1.1.0 ./deploy.sh. Timings go to results/deploy_times.csv
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 cd "$HERE"
 mkdir -p results
 
-# DB password: from the environment, or generated once and stored locally (the file is gitignored)
 if [[ -z "${DB_PASSWORD:-}" ]]; then
   [[ -f .db_password ]] || { openssl rand -hex 16 > .db_password; chmod 600 .db_password; }
   DB_PASSWORD=$(cat .db_password)

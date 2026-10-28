@@ -1,6 +1,4 @@
 {{- if .Values.autoscaling.enabled }}
-# HPA computes utilization against resources.requests.cpu, so requests are required.
-# Metrics come from metrics-server (installed by setup-cluster.sh).
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:

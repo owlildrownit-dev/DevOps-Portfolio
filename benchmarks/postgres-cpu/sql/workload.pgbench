@@ -1,18 +1,13 @@
--- Application query mix for pgbench (one "transaction" = one user visit).
--- A random customer for every iteration.
 \set cid random(1, 200000)
 
--- 1. Customer order history (the "My orders" page)
 SELECT id, status, amount, created_at
 FROM orders
 WHERE customer_id = :cid
 ORDER BY created_at DESC
 LIMIT 20;
 
--- 2. Sign-in: case-insensitive customer lookup by email
 SELECT id, full_name
 FROM customers
 WHERE lower(email) = lower('user' || :cid || '@example.org');
 
--- 3. Order details by primary key (this query is already fast)
 SELECT id, status, amount FROM orders WHERE id = :cid * 10;

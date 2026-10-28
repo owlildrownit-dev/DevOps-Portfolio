@@ -12,10 +12,7 @@ terraform {
     }
   }
 
-  # State is stored locally here. A team setup would use a remote backend
-  # (for example, S3-compatible storage) with locking, so that two people
-  # cannot apply changes at the same time.
+  # Local state; shared use needs a remote backend with locking
 }
 
-# Connects to the local Docker daemon (DOCKER_HOST or /var/run/docker.sock)
 provider "docker" {}

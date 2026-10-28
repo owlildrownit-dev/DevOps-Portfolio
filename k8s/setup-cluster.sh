@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Creates a kind cluster and deploys orders-api with Helm.
-# Requires: docker, kind, kubectl, helm.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -23,11 +21,9 @@ helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/ >
 helm repo update >/dev/null
 
 step "1b. Preloading images into the kind nodes"
-# kind nodes may have no working DNS or internet access (this happens with Docker
-# inside a container, e.g. in Codespaces). Images are therefore pulled on the host and
-# loaded into the nodes directly, as in an air-gapped cluster.
+# Nodes may lack DNS/internet (Docker-in-Docker in Codespaces), so images are loaded from the host
 PLATFORM="linux/$(dpkg --print-architecture 2>/dev/null || echo amd64)"
-images_of() {  # list of images a Helm chart uses with the given values
+images_of() {
   helm template tmp "$@" | grep -E '^[[:space:]-]*image:' | sed -E 's/.*image:[[:space:]]*//; s/["'"'"']//g' | sort -u
 }
 preload() {
@@ -35,8 +31,7 @@ preload() {
   tar="$(mktemp -d)/image.tar"
   echo "  -> $img"
   docker pull -q --platform "$PLATFORM" "$img" >/dev/null
-  # --platform on save: only the required architecture reaches the node (otherwise kind load
-  # may fail to find other architectures' layers with the containerd image store)
+  # Single-platform archive: kind load fails on missing layers of other architectures
   docker save --platform "$PLATFORM" -o "$tar" "$img" 2>/dev/null || docker save -o "$tar" "$img"
   kind load image-archive "$tar" --name "$CLUSTER" >/dev/null
   rm -rf "$(dirname "$tar")"
@@ -48,15 +43,14 @@ for img in $(images_of traefik/traefik "${TRAEFIK_ARGS[@]}") \
 done
 
 step "2. Traefik ingress controller (NodePort 30080)"
-# ingress-nginx is not used: the Kubernetes project has announced its retirement
-# (best-effort maintenance until March 2026), see k8s/README.md
+# Not ingress-nginx: retired by the Kubernetes project (see README.md)
 helm upgrade --install traefik traefik/traefik \
   --namespace traefik --create-namespace \
   "${TRAEFIK_ARGS[@]}" \
   --wait
 
 step "3. metrics-server (required by the HPA)"
-# kubelets in kind use self-signed certificates, hence --kubelet-insecure-tls (lab use only!)
+# kind kubelets use self-signed certificates; never use this flag in production
 helm upgrade --install metrics-server metrics-server/metrics-server \
   --namespace kube-system \
   --set 'args={--kubelet-insecure-tls}' \

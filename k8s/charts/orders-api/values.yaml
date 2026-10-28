@@ -1,12 +1,11 @@
-replicaCount: 2   # used only when autoscaling.enabled=false
+replicaCount: 2   # ignored when autoscaling is enabled
 
 image:
   repository: orders-api
-  tag: ""          # empty = appVersion from Chart.yaml
+  tag: ""          # defaults to appVersion
   pullPolicy: IfNotPresent
 
-# The database URL is read from an existing Secret; the chart does not create one,
-# so the password never ends up in values or in the Helm release history
+# Existing Secret: keeps the password out of values and the Helm release history
 database:
   existingSecret: orders-db
   urlKey: DATABASE_URL
@@ -24,24 +23,22 @@ ingress:
 
 resources:
   requests:
-    cpu: 100m        # HPA computes CPU utilization relative to requests
+    cpu: 100m
     memory: 128Mi
   limits:
     cpu: 500m
     memory: 256Mi
 
 probes:
-  # liveness: the process is alive. It does not check the DB, otherwise a DB outage would restart every pod
+  # No DB check here: a DB outage must not restart every pod
   liveness:
     path: /healthz
     periodSeconds: 10
     failureThreshold: 3
-  # readiness: the pod can serve traffic (the DB connection works)
   readiness:
     path: /readyz
     periodSeconds: 5
     failureThreshold: 2
-  # startup: gives the app time to start; liveness is not checked until it passes
   startup:
     path: /healthz
     periodSeconds: 2

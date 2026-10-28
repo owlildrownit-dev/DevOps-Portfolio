@@ -1,5 +1,4 @@
-# Local cluster: 1 control-plane node and 2 workers.
-# Port 30080 (the ingress controller NodePort) is published on the host as 8081.
+# 30080 is the Traefik NodePort, published on the host as 8081
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 name: demo

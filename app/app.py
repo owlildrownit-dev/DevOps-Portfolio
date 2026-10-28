@@ -1,10 +1,4 @@
-"""orders-api: a small service used throughout this lab.
-
-Endpoints:
-  GET /healthz                 liveness: the process is up and responding
-  GET /readyz                  readiness: the PostgreSQL connection works
-  GET /customers/<id>/orders   a customer's 20 most recent orders (the query from benchmarks/postgres-cpu)
-"""
+"""orders-api: customer order history service."""
 import os
 
 import psycopg2

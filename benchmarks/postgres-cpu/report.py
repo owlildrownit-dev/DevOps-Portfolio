@@ -38,7 +38,6 @@ phases = {}
 for p in ("before", "after"):
     s = pgbench_stats(p)
     s["cpu_sec"] = float((res / f"cpu_seconds_{p}.txt").read_text().strip())
-    # average load in "cores": CPU seconds divided by run seconds
     s["cores"] = s["cpu_sec"] / duration
     s["pct_one_core"] = 100 * s["cores"]
     s["pct_host"] = 100 * s["cores"] / ncpu
@@ -50,8 +49,7 @@ reduction = 100 * (b["cpu_sec"] - a["cpu_sec"]) / b["cpu_sec"]
 reduction_norm = 100 * (b["cpu_ms_per_tx"] - a["cpu_ms_per_tx"]) / b["cpu_ms_per_tx"]
 tx_diff = 100 * abs(b["tx"] - a["tx"]) / b["tx"]
 
-# If the database cannot keep up with the target rate, the two runs saw different load
-# and the comparison is invalid
+# A run that could not sustain the target rate saw a different load than the other one
 warnings = []
 for name, s in (("before", b), ("after", a)):
     if s["tps"] is not None and s["tps"] < 0.95 * rate:

@@ -1,5 +1,4 @@
 {{- if .Values.podDisruptionBudget }}
-# Keeps at least one pod available during planned node maintenance (kubectl drain)
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:

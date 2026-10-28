@@ -1,5 +1,3 @@
-# Full deployment: DB migration -> image build -> application rolling update
-# -> load balancer configuration -> smoke test.
 - name: Deploy orders-api
   hosts: localhost
   gather_facts: false
