@@ -1,8 +1,15 @@
-# Daniil Krivoshein — DevOps Engineering Portfolio
+# Daniil Krivoshein - DevOps Engineering Portfolio
 
-A collection of hands-on projects focused on infrastructure automation, containerization, Kubernetes, CI/CD, performance analysis, and operational troubleshooting.
+A collection of hands-on engineering projects focused on infrastructure automation, CI/CD, containerization, Kubernetes, Infrastructure as Code, performance optimization, and operational troubleshooting.
 
-This monorepository brings together six projects while preserving their original Git commit histories. Each project remains self-contained and has its own documentation.
+This monorepository consolidates six projects while preserving their original Git commit histories.
+
+[![Demo Pipeline](https://github.com/owlildrownit-dev/DevOps-Portfolio/actions/workflows/ci-demo.yml/badge.svg)](https://github.com/owlildrownit-dev/DevOps-Portfolio/actions/workflows/ci-demo.yml)
+[![Orders Platform](https://github.com/owlildrownit-dev/DevOps-Portfolio/actions/workflows/ci-orders.yml/badge.svg)](https://github.com/owlildrownit-dev/DevOps-Portfolio/actions/workflows/ci-orders.yml)
+[![Kubernetes Flask](https://github.com/owlildrownit-dev/DevOps-Portfolio/actions/workflows/ci-kubernetes-flask.yml/badge.svg)](https://github.com/owlildrownit-dev/DevOps-Portfolio/actions/workflows/ci-kubernetes-flask.yml)
+[![Infrastructure Validation](https://github.com/owlildrownit-dev/DevOps-Portfolio/actions/workflows/ci-infrastructure.yml/badge.svg)](https://github.com/owlildrownit-dev/DevOps-Portfolio/actions/workflows/ci-infrastructure.yml)
+
+**[Live CI/CD Demo](https://owlildrownit-dev.github.io/DevOps-Portfolio/)** | **[GitHub Actions](https://github.com/owlildrownit-dev/DevOps-Portfolio/actions)**
 
 ## Technical Focus
 
@@ -10,20 +17,87 @@ This monorepository brings together six projects while preserving their original
 | --- | --- |
 | Infrastructure as Code | Terraform, Ansible |
 | Containers and orchestration | Docker, Kubernetes, Helm, kind, Minikube |
-| CI/CD | GitHub Actions, automated linting, testing, builds, and deployment |
+| CI/CD | GitHub Actions, GitHub Container Registry, GitHub Pages |
 | Systems and scripting | Linux, Bash, Python |
-| Applications and data | Flask, FastAPI, PostgreSQL, JavaScript, Node.js |
+| Applications and databases | Flask, FastAPI, PostgreSQL, JavaScript, Node.js |
+| Quality and validation | ESLint, Vitest, Docker builds, Terraform validation, Helm linting |
+
+## CI/CD and Infrastructure Automation
+
+The repository includes four GitHub Actions workflows covering automated testing, container builds, artifact publishing, static site deployment, and infrastructure configuration validation.
+
+Workflows support manual execution and use path filters to run automatically when relevant files change.
+
+### Automated Workflows
+
+| Workflow | Validation and delivery |
+| --- | --- |
+| [CI/CD - Demo Pipeline](.github/workflows/ci-demo.yml) | npm ci, ESLint, Vitest, Vite build, GitHub Pages deployment |
+| [CI/CD - Orders Platform](.github/workflows/ci-orders.yml) | Docker build and GHCR publication |
+| [CI/CD - Kubernetes Flask](.github/workflows/ci-kubernetes-flask.yml) | Docker build and GHCR publication |
+| [CI - Infrastructure Validation](.github/workflows/ci-infrastructure.yml) | Terraform formatting and validation, Helm linting and template rendering |
+
+### Container Image Publishing
+
+Docker images are built and published to **GitHub Container Registry (GHCR)** after successful builds triggered by pushes to `main`.
+
+| Project | GHCR image |
+| --- | --- |
+| Orders Platform | `ghcr.io/owlildrownit-dev/devops-portfolio-orders` |
+| Kubernetes Flask | `ghcr.io/owlildrownit-dev/devops-portfolio-kubernetes-flask` |
+
+Each image receives:
+
+- `latest` - the most recently published version from `main`.
+- `sha-<commit>` - an immutable reference to the source commit used for the build.
+
+Pull access depends on the package visibility settings in GitHub Packages.
+
+For pull requests, the Docker workflows validate builds without publishing images.
+
+### Automated Deployment to GitHub Pages
+
+The CI/CD Demo uses a build-and-deploy pipeline:
+
+1. Install dependencies.
+2. Run ESLint checks.
+3. Execute Vitest tests.
+4. Build the Vite application.
+5. Upload the GitHub Pages artifact.
+6. Deploy the site after successful validation on `main`.
+
+Deployment is skipped for pull requests.
+
+**Live application:** https://owlildrownit-dev.github.io/DevOps-Portfolio/
+
+### Terraform and Helm Validation
+
+The infrastructure validation workflow checks the Orders Platform configuration without provisioning resources.
+
+**Terraform**
+
+- `terraform fmt -check` verifies consistent formatting.
+- `terraform init -backend=false` initializes providers without configuring a remote backend.
+- `terraform validate` checks configuration syntax and internal consistency.
+
+**Helm**
+
+- `helm lint --strict` validates the `orders-api` chart.
+- `helm template` renders Kubernetes manifests for inspection.
+
+These checks do not execute `terraform apply`, `helm install`, or `kubectl apply`.
 
 ## Featured DevOps Projects
 
-### 1. [Orders Platform — Infrastructure Automation and Kubernetes](devops/orders-platform/)
+### 1. [Orders Platform - Infrastructure Automation and Kubernetes](devops/orders-platform/)
 
 A practical DevOps environment built around a Flask API backed by PostgreSQL.
 
 - Provisions network, storage, and database resources with **Terraform**.
-- Automates application deployment, database migrations, rolling updates, Nginx configuration, and smoke checks with **Ansible**.
-- Runs the application on **Kubernetes** using a Helm chart with Deployment, Service, Ingress, HPA, and PDB resources.
-- Includes repeatable benchmarks, deployment measurements, incident notes, and screenshots.
+- Automates database migrations, application deployment, rolling updates, Nginx configuration, and smoke checks with **Ansible**.
+- Deploys the application on **Kubernetes** using Helm, including Deployment, Service, Ingress, HPA, and PDB resources.
+- Includes infrastructure benchmarks, deployment measurements, incident notes, and supporting screenshots.
+- Uses GitHub Actions to validate infrastructure configuration, build Docker images, and publish them to GHCR.
 
 **Selected results from a synthetic GitHub Codespaces test environment:**
 
@@ -33,67 +107,93 @@ A practical DevOps environment built around a Flask API backed by PostgreSQL.
 | PostgreSQL CPU time, 120-second test at 3 TPS | 125.09 s | 0.43 s (99.7% lower) |
 | Horizontal Pod Autoscaler | 2 replicas | Scaled to 5 under load |
 
-These figures describe the documented test setup, not production performance. See the [project README](devops/orders-platform/README.md) for methodology, raw results, and limitations.
+These measurements describe the documented test environment, not production performance.
 
-### 2. [CI/CD Demo — Automated Quality Gates and Deployment](devops/ci-cd-demo/)
+See the [Orders Platform documentation](devops/orders-platform/README.md) for methodology, raw results, and limitations.
 
-A JavaScript/Vite application used to demonstrate a GitHub Actions CI/CD pipeline.
+### 2. [CI/CD Demo - Automated Testing and Deployment](devops/ci-cd-demo/)
+
+A JavaScript/Vite application demonstrating a GitHub Actions pipeline with automated quality gates and deployment.
 
 - Installs dependencies using `npm ci`.
-- Runs **ESLint** checks and **Vitest** tests before building.
-- Produces a Vite distribution artifact and deploys the standalone demonstration to **GitHub Pages**.
-- Includes a deliberate failing-test scenario showing that deployment is skipped when the CI job fails.
+- Validates code with **ESLint**.
+- Runs automated tests with **Vitest**.
+- Builds a production-ready Vite distribution.
+- Automatically deploys the application to **GitHub Pages** after successful validation on `main`.
+- Preserves the original failing-test scenario in Git history to demonstrate CI failure handling.
 
-[Project documentation](devops/ci-cd-demo/README.md) · [Original CI/CD run history](https://github.com/owlildrownit-dev/demopipeline/actions)
+**[Open Live Demo](https://owlildrownit-dev.github.io/DevOps-Portfolio/)** | **[Project Documentation](devops/ci-cd-demo/README.md)** | **[CI/CD Workflow](.github/workflows/ci-demo.yml)**
 
 ### 3. [Kubernetes Flask Deployment](devops/kubernetes-flask/)
 
-A containerized Flask service deployed to a local Kubernetes cluster with **Minikube**.
+A containerized Flask application deployed to a local Kubernetes cluster using **Minikube**.
 
-- Builds and runs the application with **Docker**.
+- Builds the application with **Docker**.
 - Defines Kubernetes Deployment and Service resources.
-- Uses a two-replica Deployment and a LoadBalancer Service in the documented Minikube setup.
-- Includes architecture diagrams, deployment evidence, and screenshots from Headlamp.
+- Uses a two-replica Deployment and a LoadBalancer Service in the documented Minikube environment.
+- Includes deployment diagrams, verification evidence, and Headlamp screenshots.
+- Uses GitHub Actions for automated Docker builds and GHCR publishing.
 
-[Project documentation](devops/kubernetes-flask/README.md)
+[Project Documentation](devops/kubernetes-flask/README.md) | [CI/CD Workflow](.github/workflows/ci-kubernetes-flask.yml)
 
 ## Additional Engineering Projects
 
 ### [Red Light Detector](projects/red-light-detector/)
 
-A Python application for analyzing images and video to identify vehicles crossing a stop line during a red traffic signal. Built with **FastAPI, OpenCV, YOLOv8n (ONNX Runtime)**, and an optional desktop interface. Supports exporting analysis reports as PDF and Excel files.
+A Python application for analyzing images and video to identify vehicles crossing a stop line during a red traffic signal.
 
-[Project documentation](projects/red-light-detector/README.md)
+Built with **FastAPI, OpenCV, YOLOv8n (ONNX Runtime)**, and an optional desktop interface. Supports exporting analysis reports as PDF and Excel files.
+
+[Project Documentation](projects/red-light-detector/README.md)
 
 ### [RailControl](projects/rail-control/)
 
-An offline, browser-based railway station management system created for academic practice. It uses JavaScript and browser storage to demonstrate user roles and application workflows. The original application is included as an archive.
+An offline, browser-based railway station management application developed for academic practice.
 
-[Project documentation](projects/rail-control/README.md)
+Uses JavaScript and browser storage to demonstrate user roles and application workflows. The original application is included as an archive.
+
+[Project Documentation](projects/rail-control/README.md)
 
 ### [DevOps Labs](devops/labs/)
 
-An early-stage collection of DevOps study notes and experiments. Documentation is still being developed.
+An early-stage collection of DevOps notes and experiments. Documentation is still being developed.
 
-## Repository Layout
+## Repository Structure
 
 ```text
+.github/
+  workflows/
+    ci-demo.yml
+    ci-orders.yml
+    ci-kubernetes-flask.yml
+    ci-infrastructure.yml
+
 devops/
-  orders-platform/       Terraform, Ansible, Docker, Kubernetes, benchmarks
-  ci-cd-demo/            GitHub Actions, Vite, linting and tests
-  kubernetes-flask/      Docker and Minikube deployment
-  labs/                  Notes and experiments
+  orders-platform/
+  ci-cd-demo/
+  kubernetes-flask/
+  labs/
 
 projects/
-  red-light-detector/    Python, FastAPI, computer vision
-  rail-control/          Browser-based application
+  red-light-detector/
+  rail-control/
 ```
 
 ## Working with the Projects
 
-Each directory is an independent project. Start with its README for prerequisites, setup, and verification steps; there is no single command that runs the entire portfolio.
+Each project has its own directory and documentation. Follow the relevant project README for prerequisites, setup instructions, and verification procedures.
 
-**Monorepo migration note:** Project histories are preserved, but the original CI/CD and Codespaces configurations were written for standalone repositories. Their paths and triggers must be reviewed before using them directly from this monorepository.
+The repository does not provide a single command to run every project.
+
+## Migration and Git History
+
+Six repositories were consolidated into this monorepository using Git subtree operations without squashing their source commit histories.
+
+The original project histories remain available in the monorepository's Git history.
+
+After migration and verification, the temporary import workflow was removed. Active CI/CD workflows are maintained in the repository's root `.github/workflows/` directory.
+
+Some original repository-specific configurations remain in their respective project directories for historical reference.
 
 ## Contact
 
