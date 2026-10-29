@@ -1,0 +1,37 @@
+### Query 1: customer order history
+                                                  QUERY PLAN                                                  
+--------------------------------------------------------------------------------------------------------------
+ Limit (actual time=0.199..0.201 rows=9 loops=1)
+   Buffers: shared hit=18
+   ->  Sort (actual time=0.198..0.199 rows=9 loops=1)
+         Sort Key: created_at DESC
+         Sort Method: quicksort  Memory: 25kB
+         Buffers: shared hit=18
+         ->  Bitmap Heap Scan on orders (actual time=0.063..0.159 rows=9 loops=1)
+               Recheck Cond: (customer_id = 4242)
+               Heap Blocks: exact=9
+               Buffers: shared hit=15
+               ->  Bitmap Index Scan on orders_customer_created_idx (actual time=0.043..0.043 rows=9 loops=1)
+                     Index Cond: (customer_id = 4242)
+                     Buffers: shared hit=6
+ Planning:
+   Buffers: shared hit=116 read=1
+   I/O Timings: shared read=0.016
+ Planning Time: 0.726 ms
+ Execution Time: 0.256 ms
+(18 rows)
+
+
+### Query 2: customer lookup by email
+                                            QUERY PLAN                                             
+---------------------------------------------------------------------------------------------------
+ Index Scan using customers_email_lower_idx on customers (actual time=0.033..0.033 rows=1 loops=1)
+   Index Cond: (lower(email) = 'user4242@example.org'::text)
+   Buffers: shared hit=4
+ Planning:
+   Buffers: shared hit=102 read=1
+   I/O Timings: shared read=0.014
+ Planning Time: 0.428 ms
+ Execution Time: 0.057 ms
+(8 rows)
+

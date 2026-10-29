@@ -1,0 +1,43 @@
+### Query 1: customer order history
+                                         QUERY PLAN                                         
+--------------------------------------------------------------------------------------------
+ Limit (actual time=156.608..163.737 rows=9 loops=1)
+   Buffers: shared hit=17607
+   ->  Gather Merge (actual time=156.607..163.734 rows=9 loops=1)
+         Workers Planned: 2
+         Workers Launched: 2
+         Buffers: shared hit=17607
+         ->  Sort (actual time=126.712..126.713 rows=3 loops=3)
+               Sort Key: created_at DESC
+               Sort Method: quicksort  Memory: 25kB
+               Buffers: shared hit=17607
+               Worker 0:  Sort Method: quicksort  Memory: 25kB
+               Worker 1:  Sort Method: quicksort  Memory: 25kB
+               ->  Parallel Seq Scan on orders (actual time=32.543..126.617 rows=3 loops=3)
+                     Filter: (customer_id = 4242)
+                     Rows Removed by Filter: 666664
+                     Buffers: shared hit=17493
+ Planning:
+   Buffers: shared hit=89
+ Planning Time: 0.550 ms
+ Execution Time: 163.813 ms
+(20 rows)
+
+
+### Query 2: customer lookup by email
+                                    QUERY PLAN                                    
+----------------------------------------------------------------------------------
+ Gather (actual time=2.947..72.546 rows=1 loops=1)
+   Workers Planned: 1
+   Workers Launched: 1
+   Buffers: shared hit=2062
+   ->  Parallel Seq Scan on customers (actual time=34.007..67.311 rows=0 loops=2)
+         Filter: (lower(email) = 'user4242@example.org'::text)
+         Rows Removed by Filter: 100000
+         Buffers: shared hit=2062
+ Planning:
+   Buffers: shared hit=81
+ Planning Time: 0.357 ms
+ Execution Time: 72.582 ms
+(12 rows)
+

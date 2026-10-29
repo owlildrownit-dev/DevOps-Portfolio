@@ -1,0 +1,12 @@
+{
+  "name": "orders-platform",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {},
+    "ghcr.io/devcontainers/features/python:1": {}
+  },
+  "postCreateCommand": "bash scripts/setup-tools.sh",
+  "postStartCommand": "bash scripts/fix-docker-network.sh",
+  "hostRequirements": { "cpus": 2, "memory": "8gb" },
+  "forwardPorts": [8080, 8081]
+}

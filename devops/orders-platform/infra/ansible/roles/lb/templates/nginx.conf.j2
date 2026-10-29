@@ -1,0 +1,17 @@
+# {{ ansible_managed }}
+upstream {{ app_name }} {
+{% for i in range(1, app_replicas + 1) %}
+    server {{ app_name }}-{{ i }}:{{ app_port }} max_fails=2 fail_timeout=5s;
+{% endfor %}
+}
+
+server {
+    listen 80;
+
+    location / {
+        proxy_pass http://{{ app_name }};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_next_upstream error timeout http_502 http_503;
+    }
+}

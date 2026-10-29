@@ -1,0 +1,22 @@
+- name: "Run {{ app_name }}-{{ replica_index }}"
+  community.docker.docker_container:
+    name: "{{ app_name }}-{{ replica_index }}"
+    image: "{{ app_name }}:{{ app_version }}"
+    restart_policy: unless-stopped
+    networks:
+      - name: "{{ docker_network }}"
+    env:
+      DATABASE_URL: "postgresql://{{ db_user }}:{{ db_password }}@{{ db_host }}:5432/{{ db_name }}"
+      APP_VERSION: "{{ app_version }}"
+    labels:
+      stand: "{{ stand_name }}"
+      managed: ansible
+    state: started
+
+- name: "Wait for {{ app_name }}-{{ replica_index }} to become healthy"
+  community.docker.docker_container_info:
+    name: "{{ app_name }}-{{ replica_index }}"
+  register: replica_info
+  retries: 30
+  delay: 2
+  until: replica_info.container.State.Health.Status | default('') == 'healthy'

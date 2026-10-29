@@ -1,0 +1,4 @@
+flask==3.0.3
+gunicorn==22.0.0
+# Built from source (not -binary): needs gcc and libpq-dev at build time only
+psycopg2==2.9.9

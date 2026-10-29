@@ -1,0 +1,11 @@
+# Baseline for the size comparison with app/Dockerfile; intentionally unoptimized
+FROM python:3.12-slim
+
+WORKDIR /app
+COPY . .
+
+RUN apt-get update && apt-get install -y build-essential libpq-dev
+RUN pip install -r requirements.txt
+
+EXPOSE 8000
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "app:app"]

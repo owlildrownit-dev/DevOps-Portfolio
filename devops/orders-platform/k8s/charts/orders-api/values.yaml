@@ -1,0 +1,54 @@
+replicaCount: 2   # ignored when autoscaling is enabled
+
+image:
+  repository: orders-api
+  tag: ""          # defaults to appVersion
+  pullPolicy: IfNotPresent
+
+# Existing Secret: keeps the password out of values and the Helm release history
+database:
+  existingSecret: orders-db
+  urlKey: DATABASE_URL
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+ingress:
+  enabled: true
+  className: traefik
+  host: orders.demo.local
+  path: /
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+probes:
+  # No DB check here: a DB outage must not restart every pod
+  liveness:
+    path: /healthz
+    periodSeconds: 10
+    failureThreshold: 3
+  readiness:
+    path: /readyz
+    periodSeconds: 5
+    failureThreshold: 2
+  startup:
+    path: /healthz
+    periodSeconds: 2
+    failureThreshold: 30
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 60
+
+podDisruptionBudget:
+  minAvailable: 1

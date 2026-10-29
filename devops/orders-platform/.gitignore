@@ -1,0 +1,12 @@
+# secrets and state: never commit
+**/.db_password
+**/terraform.tfstate*
+**/.terraform/
+**/.terraform.lock.hcl
+**/group_vars/all/terraform.yml
+**/.rendered/
+**/.pgdata/
+# temporary archives
+*.zip
+*.tar
+__pycache__/

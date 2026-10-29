@@ -1,0 +1,9 @@
+ calls | total_ms | mean_ms | pct_time | blocks_touched |                                 query                                  
+-------+----------+---------+----------+----------------+------------------------------------------------------------------------
+   384 |    75564 | 196.781 |     58.1 |        6760860 | SELECT id, status, amount, created_at FROM orders WHERE customer_id = 
+   384 |    54374 | 141.599 |     41.8 |         791808 | SELECT id, full_name FROM customers WHERE lower(email) = lower($1 || $
+     1 |       99 |  98.874 |      0.1 |          17493 | SELECT count(*) FROM orders
+     1 |       10 |   9.767 |      0.0 |           2062 | SELECT count(*) FROM customers
+   384 |        9 |   0.023 |      0.0 |           1548 | SELECT id, status, amount FROM orders WHERE id = $1 * $2
+(5 rows)
+

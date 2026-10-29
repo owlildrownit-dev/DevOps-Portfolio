@@ -1,0 +1,19 @@
+- name: Deploy orders-api
+  hosts: localhost
+  gather_facts: false
+
+  pre_tasks:
+    - name: Check required variables
+      ansible.builtin.assert:
+        that:
+          - db_password | length > 0
+          - docker_network is defined
+        fail_msg: >-
+          DB_PASSWORD is not set, or terraform.yml has not been generated.
+          Run the deployment through ../deploy.sh
+
+  roles:
+    - db_migrate
+    - app
+    - lb
+    - smoke_test

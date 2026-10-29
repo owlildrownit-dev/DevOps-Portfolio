@@ -1,0 +1,15 @@
+pgbench (16.15 (Ubuntu 16.15-0ubuntu0.24.04.1))
+transaction type: /workspaces/codespaces-blank/devops-demo-stand/03-postgres-cpu/sql/workload.pgbench
+scaling factor: 1
+query mode: simple
+number of clients: 4
+number of threads: 2
+maximum number of tries: 1
+duration: 120 s
+number of transactions actually processed: 360
+number of failed transactions: 0 (0.000%)
+latency average = 0.997 ms
+latency stddev = 0.685 ms
+rate limit schedule lag: avg 0.135 (max 11.460) ms
+initial connection time = 8.922 ms
+tps = 3.010282 (without initial connection time)

@@ -1,0 +1,14 @@
+# BuildKit is required: the Dockerfile uses RUN --mount
+- name: Build application image
+  community.docker.docker_image_build:
+    name: "{{ app_name }}"
+    tag: "{{ app_version }}"
+    path: "{{ app_src_dir }}"
+    dockerfile: Dockerfile
+    rebuild: always
+
+- name: Roll out replicas one by one
+  ansible.builtin.include_tasks: replica.yml
+  loop: "{{ range(1, app_replicas + 1) | list }}"
+  loop_control:
+    loop_var: replica_index

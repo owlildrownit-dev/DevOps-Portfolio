@@ -1,0 +1,15 @@
+# 30080 is the Traefik NodePort, published on the host as 8081
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: demo
+networking:
+  podSubnet: "10.244.0.0/16"
+  serviceSubnet: "10.96.0.0/12"
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30080
+        hostPort: 8081
+        protocol: TCP
+  - role: worker
+  - role: worker
