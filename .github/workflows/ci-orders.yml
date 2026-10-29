@@ -1,0 +1,31 @@
+name: CI - Orders Platform
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "devops/orders-platform/app/**"
+      - ".github/workflows/ci-orders.yml"
+
+  pull_request:
+    branches: [main]
+    paths:
+      - "devops/orders-platform/app/**"
+      - ".github/workflows/ci-orders.yml"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Build Docker image
+        run: docker build -t orders-platform:ci ./devops/orders-platform/app
