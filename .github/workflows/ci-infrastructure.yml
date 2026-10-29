@@ -1,0 +1,65 @@
+name: CI - Infrastructure Validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "devops/orders-platform/infra/terraform/**"
+      - "devops/orders-platform/k8s/charts/orders-api/**"
+      - ".github/workflows/ci-infrastructure.yml"
+
+  pull_request:
+    branches: [main]
+    paths:
+      - "devops/orders-platform/infra/terraform/**"
+      - "devops/orders-platform/k8s/charts/orders-api/**"
+      - ".github/workflows/ci-infrastructure.yml"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    name: Terraform Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.17.1
+
+      - name: Check formatting
+        run: terraform fmt -check -recursive -diff devops/orders-platform/infra/terraform
+
+      - name: Initialize Terraform
+        run: terraform -chdir=devops/orders-platform/infra/terraform init -backend=false -input=false -no-color
+
+      - name: Validate Terraform
+        run: terraform -chdir=devops/orders-platform/infra/terraform validate -no-color
+
+  helm:
+    name: Helm Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5
+        with:
+          version: v4.3.1
+
+      - name: Lint Helm chart
+        run: helm lint devops/orders-platform/k8s/charts/orders-api --strict
+
+      - name: Render Kubernetes manifests
+        run: helm template orders-api devops/orders-platform/k8s/charts/orders-api
