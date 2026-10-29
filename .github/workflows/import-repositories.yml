@@ -78,7 +78,11 @@ jobs:
           import_repo rail RailControl main projects/rail-control
           import_repo detector PR_PRACTIC main projects/red-light-detector
 
-          git branch archive/demopipeline-failing-test pipeline/test/failing-test
+          git merge -s ours --no-ff \
+          -m "Preserve demopipeline test branch history" \
+          pipeline/test/failing-test
+
+          git merge-base --is-ancestor pipeline/test/failing-test HEAD
 
           git diff --check
           test -z "$(git status --porcelain)"
@@ -86,7 +90,5 @@ jobs:
           if [[ "$MODE" == plan ]]; then
             echo "PLAN OK — nothing published"
           else
-            git push --atomic origin \
-              HEAD:refs/heads/main \
-              refs/heads/archive/demopipeline-failing-test:refs/heads/archive/demopipeline-failing-test
+            git push origin HEAD:main
           fi
