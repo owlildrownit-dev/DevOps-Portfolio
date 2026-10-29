@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ app_name }}</title>
+<link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="eyebrow">МТУСИ · производственная практика</div>
+      <h1>Детекция проезда на красный сигнал</h1>
+    </div>
+    <div class="badge" id="healthBadge">●&nbsp;проверка</div>
+  </div>
+</header>
+
+<main>
+  <!-- UPLOAD PANEL -->
+  <section class="card">
+    <h2>Новый анализ</h2>
+    <form id="form">
+      <label class="drop" id="drop">
+        <input id="fileInput" type="file" accept="image/*,video/*" name="file" required>
+        <span class="drop-icon">⬆</span>
+        <span class="drop-title">Выберите файл или перетащите</span>
+        <span class="drop-hint">JPG · PNG · WEBP · MP4 · AVI · MOV · MKV</span>
+      </label>
+
+      <div class="preview-wrap hidden" id="previewWrap">
+        <button type="button" class="clear-btn" id="clearBtn">✕ Убрать файл</button>
+        <img id="imgPreview" class="preview hidden" alt="">
+        <video id="vidPreview" class="preview hidden" controls muted></video>
+        <canvas id="canvas"></canvas>
+        <div class="line-hint hidden" id="lineHint">Щёлкните по двум концам стоп-линии</div>
+      </div>
+
+      <div class="controls">
+        <label>
+          <span>Стоп-линия</span>
+          <select id="lineMode" name="stop_line_mode">
+            <option value="auto">Автоматически</option>
+            <option value="auto_fallback">Авто + резервная</option>
+            <option value="manual">Указать вручную</option>
+          </select>
+        </label>
+        <label>
+          <span>Сигнал светофора</span>
+          <select id="signalMode" name="traffic_light_state">
+            <option value="auto">Определить автоматически</option>
+            <option value="red">Красный</option>
+            <option value="yellow">Жёлтый</option>
+            <option value="green">Зелёный</option>
+          </select>
+        </label>
+      </div>
+
+      <input type="hidden" id="x1" name="x1">
+      <input type="hidden" id="y1" name="y1">
+      <input type="hidden" id="x2" name="x2">
+      <input type="hidden" id="y2" name="y2">
+
+      <div class="actions">
+        <button type="button" class="btn-secondary hidden" id="resetLine">Сбросить линию</button>
+        <button type="submit" class="btn-primary" id="submitBtn">Запустить обработку</button>
+      </div>
+    </form>
+
+    <div class="progress hidden" id="progress">
+      <div class="spinner"></div>
+      <span>Обрабатывается…</span>
+    </div>
+    <div class="error hidden" id="errorBox"></div>
+  </section>
+
+  <!-- RESULT PANEL -->
+  <section class="card hidden" id="resultCard">
+    <div class="result-header">
+      <h2>Результат</h2>
+      <div class="result-links">
+        <a id="pdfLink" href="#" download class="btn-secondary">PDF</a>
+        <a id="xlsLink" href="#" download class="btn-secondary">Excel</a>
+      </div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div id="resultMedia"></div>
+    <div id="eventList"></div>
+  </section>
+
+  <!-- HISTORY PANEL -->
+  <section class="card">
+    <div class="result-header">
+      <h2>История</h2>
+      <button class="btn-secondary" id="refreshBtn">Обновить</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Дата</th><th>Файл</th><th>Тип</th><th>ТС</th><th>Нарушений</th><th>Отчёты</th></tr></thead>
+        <tbody id="histBody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer>Кривошеин Даниил Романович · УБВТ2401 · МТУСИ · 2026</footer>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
