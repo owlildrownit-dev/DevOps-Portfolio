@@ -1,603 +1,273 @@
-# DevOps Internship Test Task
+# Kubernetes Flask - Docker and Minikube Deployment
 
-Тестовое задание на позицию **DevOps Intern**.
+[![Kubernetes Flask CI/CD](https://github.com/owlildrownit-dev/DevOps-Portfolio/actions/workflows/ci-kubernetes-flask.yml/badge.svg)](https://github.com/owlildrownit-dev/DevOps-Portfolio/actions/workflows/ci-kubernetes-flask.yml)
 
-В рамках проекта создано простое веб-приложение `Hello World` на Python с использованием Flask. Приложение контейнеризировано с помощью Docker, опубликовано в Docker Hub и развернуто в локальном Kubernetes-кластере Minikube.
+A containerized Python/Flask application demonstrating Docker image creation, Kubernetes deployment, service networking, local cluster operations, and automated image publishing.
 
-Приложение работает на порту `32777`.
+The project uses a two-replica Kubernetes Deployment in Minikube and a GitHub Actions workflow for Docker builds and publication to GitHub Container Registry.
 
----
+**[CI/CD Workflow](../../.github/workflows/ci-kubernetes-flask.yml)** | **[Portfolio Repository](../../README.md)**
 
-## Technologies
+## Technology Stack
 
-В проекте используется следующий стек:
+| Technology | Purpose |
+| --- | --- |
+| Python 3.14 | Application runtime in Docker |
+| Flask | HTTP application |
+| Docker | Containerization |
+| Kubernetes | Container orchestration |
+| Minikube | Local Kubernetes cluster |
+| kubectl | Kubernetes resource management |
+| Headlamp | Kubernetes dashboard and inspection |
+| GitHub Actions | Automated Docker builds |
+| GHCR | Container image registry |
 
-- Python
-- Flask
-- Docker
-- Docker Hub
-- Kubernetes
-- Minikube
-- kubectl
-- Headlamp
-- Git
-- draw.io
+## Architecture
 
----
+![Kubernetes architecture](docs/Scheme.png)
 
-## Архитектура
+[Open architecture diagram source](docs/Scheme.drawio)
 
-<p align="center">
-  <img src="docs/Scheme.png" width="900">
-</p>
+The Kubernetes environment consists of:
 
-[Открыть схему в draw.io](https://app.diagrams.net/#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fowlildrownit-dev%2FDevOps-Test%2Fmain%2Fdocs%2FScheme.drawio)
+- A Deployment named `hello-world`.
+- Two application replicas.
+- Pods labeled `app: hello-world`.
+- A Service named `hello-world-service`.
+- A `LoadBalancer` Service exposing port `32777`.
 
-[Исходный файл Scheme.drawio](docs/Scheme.drawio)
+The Service selects application Pods using the label `app: hello-world` and forwards traffic to their container port `32777`.
 
-Deployment поддерживает две реплики приложения.
+## Application
 
-Каждый Pod содержит отдельный контейнер с Flask-приложением, работающим на порту `32777`.
+The application is a minimal Flask HTTP service.
 
-Service типа `LoadBalancer` выбирает Pod'ы по label:
-
-```text
-app=hello-world
-```
-
-и перенаправляет входящий трафик на порт `32777` контейнеров.
-
----
-
-## Архитектура репозитория
-
-```text
-DevOps-Test/
-│
-├── hello-world/
-│   ├── hello-world.py
-│   └── requirements.txt
-│
-├── kube/
-│   ├── deployment.yaml
-│   └── service.yaml
-│
-├─ docs/
-│   ├── Answers.md
-│   ├── Scheme.drawio
-│   ├── Scheme.png
-│   
-├── screenshots/
-│   ├── deploy.png
-│   ├── docker-hub.png
-│   ├── general-screen.png
-│   ├── HeadLamp.png
-│   ├── HeadLamp-deployment.png
-│   ├── k8s.png
-│   ├── kubernetes_nodes.png
-│   ├── minikube_status.png
-│   ├── services.png
-│   └── system.png
-│
-├── Dockerfile
-├── .dockerignore
-├── .gitignore
-└── README.md
-```
-
----
-
-# Приложение
-
-Приложение представляет собой минимальный HTTP-сервис на Python/Flask.
-
-При обращении к корневому endpoint:
-
-```text
-/
-```
-
-приложение возвращает:
-
-```text
-Hello World!
-```
-
-Приложение слушает:
+It listens on:
 
 ```text
 0.0.0.0:32777
 ```
 
-Использование `0.0.0.0` позволяет обращаться к приложению не только локально внутри Python-процесса, но и через Docker/Kubernetes networking.
-
----
-
-# Локальный запуск
-
-## Требования
-
-Для локального запуска необходим Python.
-
-Проверить установленную версию:
-
-```bash
-python --version
-```
-
-Перейти в директорию приложения:
-
-```bash
-cd hello-world
-```
-
-Создать виртуальное окружение:
-
-```bash
-python -m venv .venv
-```
-
-В Windows PowerShell активировать его:
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-Установить зависимости:
-
-```bash
-pip install -r requirements.txt
-```
-
-Запустить приложение:
-
-```bash
-python hello-world.py
-```
-
-После запуска приложение будет доступно по адресу:
+The root endpoint `/` responds with:
 
 ```text
+Hello, World!
+```
+
+The application implementation is located in [`hello-world/hello-world.py`](hello-world/hello-world.py).
+
+## Local Docker Deployment
+
+### Requirements
+
+- Docker
+- Git
+
+From the monorepository root, navigate to the project:
+
+```bash
+cd devops/kubernetes-flask
+```
+
+### Build Image
+
+```bash
+docker build -t kubernetes-flask:local .
+```
+
+The Dockerfile uses `python:3.14-slim`, installs the Flask application's dependencies, and starts the application on port `32777`.
+
+### Run Container
+
+```bash
+docker run --rm -p 32777:32777 kubernetes-flask:local
+```
+
+Open:
+
 http://localhost:32777
-```
 
----
-
-# Docker
-
-## Build Image
-
-Сборка Docker image выполняется из корня репозитория:
+Or verify the HTTP response:
 
 ```bash
-docker build -t devops-test:1.0 .
+curl http://localhost:32777/
 ```
 
-Проверить созданный image:
-
-```bash
-docker images
-```
-
----
-
-## Run Container
-
-Запустить контейнер:
-
-```bash
-docker run --name devops-test-container -p 32777:32777 devops-test:1.0
-```
-
-Параметр:
+Expected response:
 
 ```text
--p 32777:32777
+Hello, World!
 ```
 
-пробрасывает порт `32777` хостовой системы на порт `32777` внутри контейнера.
+## Kubernetes Deployment with Minikube
 
-После запуска приложение доступно:
+### Requirements
 
-```text
-http://localhost:32777
-```
+- Docker
+- Minikube
+- kubectl
 
-Проверить работающий контейнер:
-
-```bash
-docker ps
-```
-
----
-
-# Docker Hub
-
-После локальной сборки image был опубликован в Docker Hub.
-
-Docker image:
-
-```text
-owlildrownit/devops-test:1.0
-```
-
-Docker Hub repository:
-
-```text
-https://hub.docker.com/r/owlildrownit/devops-test
-```
-
-Перед публикацией локальному image был назначен дополнительный tag:
-
-```bash
-docker tag devops-test:1.0 owlildrownit/devops-test:1.0
-```
-
-Загрузка image:
-
-```bash
-docker push owlildrownit/devops-test:1.0
-```
-
-Также может использоваться tag:
-
-```text
-latest
-```
-
----
-
-# Kubernetes / Minikube
-
-Для локального Kubernetes-кластера используется Minikube с Docker driver.
-
-## Запуск кластера
-
-Убедиться, что Docker Desktop запущен.
-
-Запустить Minikube:
+### Start Local Cluster
 
 ```bash
 minikube start --driver=docker
 ```
 
-Проверить состояние:
+Verify the cluster:
 
 ```bash
 minikube status
-```
-
-Проверить Kubernetes node:
-
-```bash
 kubectl get nodes
 ```
 
-Ожидаемый статус node:
+### Deploy Application
 
-```text
-Ready
-```
-
----
-
-# Deployment
-
-Deployment описан в:
-
-```text
-kube/deployment.yaml
-```
-
-Создание Deployment:
+Apply the Deployment manifest:
 
 ```bash
 kubectl apply -f kube/deployment.yaml
 ```
 
-Проверить Deployment:
-
-```bash
-kubectl get deployments
-```
-
-Приложение запускается в двух репликах:
-
-```text
-READY
-2/2
-```
-
-Проверить Pod'ы:
-
-```bash
-kubectl get pods
-```
-
-Ожидается два Pod в состоянии:
-
-```text
-Running
-```
-
-Также можно посмотреть ReplicaSet:
-
-```bash
-kubectl get replicasets
-```
-
-Связь ресурсов:
-
-```text
-Deployment
-    |
-    v
-ReplicaSet
-    |
-    +---- Pod 1
-    |
-    +---- Pod 2
-```
-
-Kubernetes постоянно поддерживает желаемое количество реплик.
-
-Если один из Pod удалить:
-
-```bash
-kubectl delete pod POD_NAME
-```
-
-ReplicaSet автоматически создаст новый Pod, чтобы снова обеспечить:
-
-```text
-replicas: 2
-```
-
----
-
-# Service
-
-Service описан в:
-
-```text
-kube/service.yaml
-```
-
-Создать Service:
+Apply the Service manifest:
 
 ```bash
 kubectl apply -f kube/service.yaml
 ```
 
-Проверить:
+Wait for the Deployment rollout:
 
 ```bash
+kubectl rollout status deployment/hello-world
+```
+
+Inspect resources:
+
+```bash
+kubectl get deployments
+kubectl get pods -l app=hello-world
 kubectl get services
 ```
 
-Для приложения используется Service типа:
+The Deployment specifies two replicas.
 
-```text
-LoadBalancer
-```
+**Important:** The checked-in Kubernetes manifest currently references the historical Docker Hub image `owlildrownit/devops-test:1.0`. The GHCR publishing workflow does not automatically update or deploy this manifest. The referenced image must be accessible to the cluster.
 
-Основные параметры:
+### Access the Service
 
-```text
-Port:       32777
-TargetPort: 32777
-Selector:   app=hello-world
-```
+The application uses a Kubernetes Service of type `LoadBalancer`.
 
-Service находит Pod'ы по Kubernetes label:
-
-```text
-app=hello-world
-```
-
-и распределяет трафик между ними.
-
----
-
-# Minikube Tunnel
-
-Для доступа к Service типа `LoadBalancer` используется:
+In a separate terminal, run:
 
 ```bash
 minikube tunnel
 ```
 
-Команда должна оставаться запущенной в отдельном терминале.
-
-После запуска tunnel проверить Service:
+Then inspect the assigned external address:
 
 ```bash
-kubectl get services
+kubectl get service hello-world-service
 ```
 
-В локальной конфигурации Minikube приложение становится доступно через:
+Use the reported `EXTERNAL-IP` and port `32777` to access the application.
+
+The tunnel must remain running while using this access method.
+
+## CI/CD and Container Registry
+
+The active GitHub Actions workflow is:
+
+[`../../.github/workflows/ci-kubernetes-flask.yml`](../../.github/workflows/ci-kubernetes-flask.yml)
+
+### Continuous Integration
+
+When relevant project files or the workflow itself change, GitHub Actions:
+
+1. Checks out the repository.
+2. Builds the application Docker image.
+3. Reports the build result.
+
+Pull requests targeting `main` trigger Docker build validation without publishing an image.
+
+### Container Image Publishing
+
+For qualifying pushes to `main`, the workflow additionally:
+
+1. Authenticates to GitHub Container Registry using `GITHUB_TOKEN`.
+2. Tags the built Docker image.
+3. Publishes the image to GHCR.
+
+**Container image:**
 
 ```text
-http://127.0.0.1:32777
+ghcr.io/owlildrownit-dev/devops-portfolio-kubernetes-flask
 ```
 
----
+The workflow publishes two tags:
 
-# Kubernetes Resource Verification
+- `latest`
+- `sha-<commit>`
 
-Для общей проверки состояния приложения можно использовать:
+Public pull access depends on the package's visibility settings in GitHub Packages.
 
-```bash
-kubectl get deployments
-kubectl get replicasets
-kubectl get pods
-kubectl get services
+**[View successful image publication](https://github.com/owlildrownit-dev/DevOps-Portfolio/actions/runs/40842770719)**
+
+This CI/CD workflow builds and publishes images. It does not perform an automated Kubernetes deployment.
+
+## Verification Evidence
+
+The repository includes screenshots from the documented local deployment.
+
+| Evidence | File |
+| --- | --- |
+| Minikube status | [View screenshot](screenshots/minikube_status.png) |
+| Kubernetes nodes | [View screenshot](screenshots/kubernetes_nodes.png) |
+| Deployment | [View screenshot](screenshots/deploy.png) |
+| Kubernetes services | [View screenshot](screenshots/services.png) |
+| Headlamp dashboard | [View screenshot](screenshots/HeadLamp.png) |
+| Headlamp Deployment view | [View screenshot](screenshots/HeadLamp-deployment.png) |
+| Docker Hub publication | [View screenshot](screenshots/docker-hub.png) |
+
+## Project Structure
+
+```text
+kubernetes-flask/
+  hello-world/
+    hello-world.py
+    requirements.txt
+  kube/
+    deployment.yaml
+    service.yaml
+  docs/
+    Scheme.drawio
+    Scheme.png
+    answers.md
+  screenshots/
+  Dockerfile
+  README.md
 ```
 
-Проверка конкретного Pod:
+## Limitations and Future Improvements
 
-```bash
-kubectl describe pod POD_NAME
-```
+This project demonstrates a local Kubernetes deployment and an automated Docker build-and-publish workflow.
 
-Просмотр логов контейнера:
+Current limitations:
 
-```bash
-kubectl logs POD_NAME
-```
+- The Kubernetes manifests reference the original Docker Hub image rather than the new GHCR package.
+- Automated Kubernetes deployment is not configured.
+- The Deployment does not define resource requests, resource limits, or health probes.
+- The CI workflow validates Docker image builds but does not run application integration tests.
 
----
+Possible improvements include:
 
-# Headlamp
+- Updating the Kubernetes Deployment to use GHCR.
+- Adding liveness and readiness probes.
+- Defining resource requests and limits.
+- Adding application smoke tests.
+- Automating deployment to a test Kubernetes environment.
 
-Для визуального просмотра ресурсов Kubernetes дополнительно использовался Headlamp.
+## Additional Documentation
 
-Через Headlamp были дополнительно проверены:
-
-- Minikube cluster
-- Node
-- Deployment
-- Pods
-- Service
-- состояние реплик
-- сетевые параметры
-
-Deployment содержит две рабочие реплики приложения.
-
----
-
-# Screenshots
-
-## Minikube Status
-
-![Minikube Status](screenshots/minikube_status.png)
-
----
-
-## Kubernetes Node
-
-![Kubernetes Nodes](screenshots/kubernetes_nodes.png)
-
----
-
-## Deployment and Pods
-
-![Deployment](screenshots/deploy.png)
-
----
-
-## Kubernetes Resources
-
-![Kubernetes](screenshots/k8s.png)
-
----
-
-## Service
-
-![Service](screenshots/services.png)
-
----
-
-## Headlamp
-
-![Headlamp](screenshots/HeadLamp.png)
-
----
-
-## Headlamp Deployment
-
-![Headlamp Deployment](screenshots/HeadLamp-deployment.png)
-
----
-
-## Docker Hub
-
-![Docker Hub](screenshots/docker-hub.png)
-
----
-
-# Ответы на теоретические вопросы
-
-Ответы на теоретическую часть тестового задания находятся в отдельном файле:
-
-[docs/Answers.md](docs/answers.md)
-
----
-
-# Полезные команды
-
-Запуск Minikube:
-
-```bash
-minikube start --driver=docker
-```
-
-Проверка состояния:
-
-```bash
-minikube status
-```
-
-Применение всех Kubernetes правил:
-
-```bash
-kubectl apply -f kube/
-```
-
-Проверка Pod'ов:
-
-```bash
-kubectl get pods
-```
-
-Проверка Deployment:
-
-```bash
-kubectl get deployments
-```
-
-Проверка Service:
-
-```bash
-kubectl get services
-```
-
-Запуск туннеля:
-
-```bash
-minikube tunnel
-```
-
-Остановка Minikube:
-
-```bash
-minikube stop
-```
-
-Удаление локального Minikube-кластера:
-
-```bash
-minikube delete
-```
-
----
-
-# Итог
-
-В результате:
-
-- создано Python Flask приложение;
-- приложение работает на порту `32777`;
-- создан Docker image;
-- приложение успешно запускается в Docker container;
-- Docker image опубликован в Docker Hub;
-- установлен и настроен Minikube;
-- создан Kubernetes Deployment;
-- Deployment поддерживает две реплики приложения;
-- создан Kubernetes Service типа `LoadBalancer`;
-- настроен доступ через `minikube tunnel`;
-- приложение доступно через браузер;
-- состояние Kubernetes-ресурсов проверено через `kubectl` и Headlamp;
-- подготовлена архитектурная схема проекта;
-- подготовлены скриншоты результатов работы.
-
+- [Kubernetes manifests](kube/)
+- [Architecture diagram](docs/Scheme.drawio)
+- [Technical questions and answers](docs/answers.md)
+- [Original project repository](https://github.com/owlildrownit-dev/DevOps-Test)
