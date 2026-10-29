@@ -1,143 +1,210 @@
-# Junior DevOps - CI/CD Demo
+# CI/CD Demo - GitHub Actions, Vite and GitHub Pages
 
-Демонстрационный проект автоматизации CI/CD
-для статического веб-приложения.
+[![CI/CD Demo](https://github.com/owlildrownit-dev/DevOps-Portfolio/actions/workflows/ci-demo.yml/badge.svg)](https://github.com/owlildrownit-dev/DevOps-Portfolio/actions/workflows/ci-demo.yml)
 
-Цель проекта - реализовать автоматическую проверку,
-сборку и публикацию приложения при изменениях
-в основной ветке Git-репозитория.
+A practical demonstration of an automated CI/CD pipeline for a JavaScript application built with Vite.
 
-## Технологии
+The project focuses on automated quality checks, reproducible builds, deployment gating, and continuous delivery using GitHub Actions.
 
-- JavaScript - язык приложения
-- Node.js 24 - среда выполнения инструментов
-- Vite - локальная разработка и production-сборка
-- ESLint - статический анализ кода
-- Vitest - модульное тестирование
-- Git - контроль версий
-- GitHub Actions - автоматизация CI/CD
-- GitHub Pages - хостинг приложения
+**[Live Application](https://owlildrownit-dev.github.io/DevOps-Portfolio/)** | **[CI/CD Workflow](../../.github/workflows/ci-demo.yml)** | **[Portfolio Repository](../../README.md)**
 
-## Локальный запуск
+## Technology Stack
 
-### Установка зависимостей
+| Technology | Purpose |
+| --- | --- |
+| JavaScript | Application development |
+| Node.js 24 | JavaScript runtime |
+| Vite | Development server and application builds |
+| ESLint | Static code analysis |
+| Vitest | Automated unit testing |
+| GitHub Actions | CI/CD automation |
+| GitHub Pages | Static application hosting |
+
+## CI/CD Architecture
+
+The pipeline automates dependency installation, code validation, testing, building, and deployment.
+
+```mermaid
+flowchart TD
+    A["Push, pull request or manual run"] --> B["npm ci"]
+    B --> C["ESLint"]
+    C --> D["Vitest"]
+    D --> E["Vite build"]
+    E --> F{"Pull request?"}
+    F -->|Yes| G["CI validation only"]
+    F -->|No| H["Upload Pages artifact"]
+    H --> I{"main branch?"}
+    I -->|Yes| J["Deploy to GitHub Pages"]
+    I -->|No| K["No deployment"]
+```
+
+The active pipeline is defined in:
+
+[`../../.github/workflows/ci-demo.yml`](../../.github/workflows/ci-demo.yml)
+
+### Continuous Integration
+
+The `build` job executes the following steps:
+
+1. Checks out the repository.
+2. Configures Node.js 24.
+3. Installs dependencies using `npm ci`.
+4. Runs ESLint using `npm run lint`.
+5. Executes Vitest tests using `npm run test`.
+6. Builds the application using `npm run build`.
+
+If linting, testing, or building fails, the job fails and deployment cannot proceed.
+
+### Continuous Deployment
+
+After a successful build on the `main` branch:
+
+1. The workflow uploads the contents of `dist/` as a GitHub Pages artifact.
+2. The `deploy` job starts after the `build` job succeeds.
+3. GitHub Actions deploys the artifact to GitHub Pages.
+
+The deployment job uses `needs: build`, so a failed build prevents deployment.
+
+Deployment permissions are assigned to the deployment job:
+
+- `pages: write`
+- `id-token: write`
+
+The build job uses read-only repository permissions.
+
+### Workflow Triggers
+
+| Event | Behavior |
+| --- | --- |
+| Push to `main` affecting the demo or its workflow | Run CI and deploy after successful validation |
+| Pull request targeting `main` affecting the demo or its workflow | Run CI without deployment |
+| Manual workflow dispatch on `main` | Run CI and deploy after successful validation |
+
+Path filters prevent routine changes to unrelated projects from triggering this workflow.
+
+The workflow also uses concurrency control to cancel superseded runs for the same Git reference.
+
+## Local Development
+
+### Requirements
+
+- Node.js 24
+- npm
+
+### Installation
+
+From the monorepository root:
 
 ```bash
+cd devops/ci-cd-demo
 npm ci
 ```
 
-### Запуск приложения
+### Start Development Server
 
 ```bash
 npm run dev
 ```
 
-### Проверка кода
+### Run Quality Checks
 
 ```bash
 npm run lint
+npm run test
 ```
 
-### Запуск тестов
-
-```bash
-npm test
-```
-
-### Production-сборка
+### Build Application
 
 ```bash
 npm run build
 ```
 
-## Архитектура CI/CD
+The generated static application is placed in `dist/`.
 
-Для автоматизации используется GitHub Actions.
+To preview the build locally:
 
-Workflow находится в файле `.github/workflows/deploy.yml`.
+```bash
+npm run preview
+```
 
-Пайплайн автоматически запускается при push в ветку `main`.
-Также предусмотрен ручной запуск через `workflow_dispatch`.
+## Deployment Configuration
 
-Пайплайн состоит из двух jobs:
+The application uses the following Vite base path:
 
-### Build (CI)
+```javascript
+base: '/DevOps-Portfolio/'
+```
 
-1. Checkout — получение исходного кода.
-2. Setup Node.js — подготовка среды Node.js 24.
-3. Install dependencies — установка зависимостей через `npm ci`.
-4. Lint — статический анализ JavaScript с помощью ESLint.
-5. Test — запуск модульных тестов Vitest.
-6. Build — создание production-сборки Vite.
-7. Upload artifact — сохранение содержимого `dist/`.
+This ensures that application assets resolve correctly when hosted under the GitHub Pages repository path.
 
-### Deploy (CD)
+**Deployment URL:**
 
-Job `deploy` зависит от успешного завершения `build`
-через директиву `needs: build`.
+https://owlildrownit-dev.github.io/DevOps-Portfolio/
 
-Если все проверки прошли, GitHub Actions публикует
-собранное приложение на GitHub Pages.
+## CI Failure Handling
 
-Если одна из проверок завершается с ошибкой,
-деплой не выполняется.
+A historical test scenario was created to verify that a failed quality gate prevents deployment.
 
-## Результаты
+In the original repository, the `test/failing-test` branch contained an intentionally failing unit test.
 
-**Репозиторий:**
-https://github.com/owlildrownit-dev/demopipeline
+The resulting workflow run demonstrated the expected behavior:
 
-**Опубликованное приложение:**
-https://owlildrownit-dev.github.io/demopipeline/
+| Step | Result |
+| --- | --- |
+| Dependency installation | Passed |
+| ESLint | Passed |
+| Vitest | Failed |
+| Application build | Skipped |
+| GitHub Pages deployment | Skipped |
 
-**История CI/CD:**
-https://github.com/owlildrownit-dev/demopipeline/actions
+**[View the failed GitHub Actions run](https://github.com/owlildrownit-dev/demopipeline/actions/runs/37744929147)**
 
-### Проверка отказа при ошибке тестирования
+This confirms that the deployment job does not proceed when its required build job fails.
 
-Для проверки механизма блокировки деплоя
-использовалась ветка `test/failing-test`.
+The historical test branch's commits were retained during the monorepository migration.
 
-Тест был намеренно изменён так, чтобы ожидать
-неверный результат.
+## Verified Deployment
 
-GitHub Actions обнаружил ошибку теста:
-- Build — Failed
-- Deploy — Skipped
+The monorepository pipeline has successfully completed its build and deployment jobs.
 
-Таким образом подтверждено, что публикация
-блокируется при неуспешных проверках.
+**[View successful CI/CD run](https://github.com/owlildrownit-dev/DevOps-Portfolio/actions/runs/40843739885)**
 
-## Мониторинг доступности
+The published application and its JavaScript, CSS, and favicon assets were verified to respond with HTTP 200 after deployment.
 
-Для мониторинга предлагается использовать UptimeRobot.
+## Project Structure
 
-Мониторинг в рамках тестового задания не развёрнут.
-Ниже описана предлагаемая конфигурация.
+```text
+ci-cd-demo/
+  src/
+    assets/
+    main.js
+    sum.js
+    sum.test.js
+    style.css
+  public/
+    favicon.svg
+    icons.svg
+  index.html
+  package.json
+  package-lock.json
+  eslint.config.js
+  vite.config.js
+  README.md
+```
 
-### Конфигурация
+The CI/CD workflow is maintained in the monorepository root under `.github/workflows/`.
 
-- Сервис: UptimeRobot
-- Тип проверки: HTTP(S)
-- URL: https://owlildrownit-dev.github.io/demopipeline/
-- Интервал: 5 минут
-- Уведомления: Email
-- Условие инцидента: подтверждённая недоступность сайта
+The original workflow remains inside this project's `.github/workflows/` directory as historical configuration.
 
-### Обработка инцидентов
+## Monitoring and Limitations
 
-При получении уведомления админ:
+The project demonstrates a CI/CD delivery process rather than a production application.
 
-1. Проверяет доступность сайта вручную.
-2. Проверяет состояние GitHub Pages.
-3. Изучает последние запуски GitHub Actions.
-4. Определяет причину недоступности.
-5. После исправления проверяет восстановление работы.
+Current limitations:
 
-### Ограничения
+- The unit test suite is intentionally small.
+- Browser-based end-to-end tests are not included.
+- An external uptime monitoring configuration is not included in the repository.
+- CI verifies application quality checks and successful builds but does not guarantee the absence of runtime defects.
 
-HTTP(S)-мониторинг проверяет доступность ресурса,
-но не гарантирует корректную работу JavaScript.
-
-Для более глубокого контроля можно дополнительно
-использовать E2E-тесты браузерного интерфейса.
+Possible extensions
